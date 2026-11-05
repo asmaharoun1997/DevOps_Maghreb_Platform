@@ -12,5 +12,23 @@ variable "resource_group_name" {
 variable "vm_size" {
   description = "Taille des VM du cluster (limitée par la policy de l'école)"
   type        = string
-  default     = "Standard_D2s_v5"
+  default     = "Standard_B2s"
+}
+
+variable "vnet_name" {
+  description = "Réseau existant créé avec la control node (bootstrap/create-control-node.sh)"
+  type        = string
+  default     = "asma-control-nodeVNET"
+}
+
+variable "ssh_public_key_path" {
+  description = "Clé publique SSH déposée sur les VM du cluster"
+  type        = string
+  default     = "~/.ssh/id_ed25519.pub"
+}
+
+variable "location" {
+  description = "Région Azure du cluster (quota des VM B2s disponible)"
+  type        = string
+  default     = "germanywestcentral"
 }
