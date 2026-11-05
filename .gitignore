@@ -1,0 +1,33 @@
+# ---------- Secrets : jamais dans Git ----------
+.env
+*.tfvars
+!*.tfvars.example
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+kubeconfig*
+.vault_pass*
+*-secret.yaml
+!*-secret.example.yaml
+
+# ---------- Terraform ----------
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+
+# ---------- Java / Maven ----------
+app/backend/target/
+app/backend/data/
+
+# ---------- Sauvegardes locales ----------
+backups/
+
+# ---------- IDE / système ----------
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db

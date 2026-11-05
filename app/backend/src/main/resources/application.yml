@@ -1,0 +1,62 @@
+# Toute la configuration variable passe par des variables d'environnement
+# (valeurs par défaut = développement sur ta machine).
+spring:
+  application:
+    name: maghreb-platform
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/maghreb}
+    username: ${DB_USER:maghreb}
+    password: ${DB_PASSWORD:maghreb}
+    hikari:
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate      # le schéma est géré par Flyway, jamais par Hibernate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC      # toutes les dates sont stockées en UTC
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP   # colonnes DATETIME(6) de MySQL
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+server:
+  port: 8080
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true         # /actuator/health/liveness et /actuator/health/readiness
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+app:
+  jwt:
+    # 32 caractères minimum. À remplacer hors développement (variable JWT_SECRET).
+    secret: ${JWT_SECRET:dev-only-secret-change-me-0123456789abcdef}
+    ttl: ${JWT_TTL:P7D}
+  storage:
+    type: ${STORAGE_TYPE:local}             # local | s3
+    local-dir: ${STORAGE_LOCAL_DIR:./data/media}   # dans Kubernetes : un volume persistant (NFS)
+    s3:
+      endpoint: ${S3_ENDPOINT:}
+      region: ${S3_REGION:eu-paris-1}
+      bucket: ${S3_BUCKET:maghreb-media}
+      access-key: ${S3_ACCESS_KEY:}
+      secret-key: ${S3_SECRET_KEY:}

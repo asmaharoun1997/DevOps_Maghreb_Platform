@@ -1,0 +1,921 @@
+<title>Maghreb Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout : réseau social en 3 colonnes (navigation · fil · suggestions), barre d'onglets en bas sur mobile.
+   Identité : bleu Majorelle + safran, motif khatam (étoile à 8 branches) réservé aux couvertures et visuels. */
+:root {
+  --bg: #f3f4f9;
+  --surface: #ffffff;
+  --surface-2: #eceef7;
+  --ink: #171a33;
+  --muted: #5d6385;
+  --line: #dde0ee;
+  --majorelle: #2a43c4;
+  --majorelle-strong: #1e3399;
+  --majorelle-soft: #e4e8fb;
+  --on-majorelle: #ffffff;
+  --saffron: #b37708;
+  --saffron-fill: #f2b53a;
+  --on-saffron: #1d1503;
+  --like: #c8323b;
+  --mint: #1d8564;
+  --shadow: 0 1px 2px rgba(23, 26, 51, .05), 0 6px 20px rgba(23, 26, 51, .06);
+  --font-display: "Reem Kufi", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0f24; --surface: #151938; --surface-2: #1d2248; --ink: #e9ebf8; --muted: #9ea5c8; --line: #2a3062;
+    --majorelle: #8b9cff; --majorelle-strong: #a8b5ff; --majorelle-soft: #232a5c; --on-majorelle: #0c0f24;
+    --saffron: #f0bb4a; --saffron-fill: #f0bb4a; --on-saffron: #1d1503; --like: #ff6b74; --mint: #4cc79c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0f24; --surface: #151938; --surface-2: #1d2248; --ink: #e9ebf8; --muted: #9ea5c8; --line: #2a3062;
+  --majorelle: #8b9cff; --majorelle-strong: #a8b5ff; --majorelle-soft: #232a5c; --on-majorelle: #0c0f24;
+  --saffron: #f0bb4a; --saffron-fill: #f0bb4a; --on-saffron: #1d1503; --like: #ff6b74; --mint: #4cc79c;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body); }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--majorelle); }
+:focus-visible { outline: 2px solid var(--majorelle); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ar { font-family: var(--font-display); font-weight: 500; }
+svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ---------- Boutons ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; border-radius: 999px;
+  padding: 8px 16px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s, color .15s; }
+.btn-sm { padding: 5px 12px; font-size: 13.5px; }
+.btn-primary { background: var(--majorelle); color: var(--on-majorelle); }
+.btn-primary:hover { background: var(--majorelle-strong); }
+.btn-saffron { background: var(--saffron-fill); color: var(--on-saffron); }
+.btn-saffron:hover { filter: brightness(1.05); }
+.btn-ghost { background: transparent; border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--muted); }
+.btn-follow[aria-pressed="true"] { background: transparent; border-color: var(--line); color: var(--muted); }
+.icon-btn { display: inline-grid; place-items: center; background: none; border: 0; border-radius: 8px; padding: 6px; cursor: pointer; color: var(--muted); }
+.icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+/* ---------- En-tête ---------- */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line); }
+.topbar-inner { max-width: 1240px; margin-inline: auto; display: flex; align-items: center; gap: 16px; min-height: 60px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); flex: none; }
+.brand-mark { width: 30px; height: 30px; }
+.brand-mark rect { fill: none; stroke: var(--majorelle); stroke-width: 2.5; }
+.brand-mark circle { fill: var(--saffron-fill); }
+.brand-name { font-family: var(--font-display); font-size: 19px; font-weight: 700; }
+.brand-name span { color: var(--majorelle); }
+.top-search { flex: 1 1 auto; max-width: 440px; position: relative; min-width: 0; }
+.top-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.top-search input { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 9px 14px 9px 38px; min-width: 0; }
+.top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.me { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--saffron-fill); color: var(--on-saffron); font-weight: 700; font-size: 13px; }
+.demo-note { margin: 0; text-align: center; font-size: 12.5px; color: var(--muted); background: var(--surface-2); border-bottom: 1px solid var(--line);
+  padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* ---------- Grille principale ---------- */
+.layout { max-width: 1240px; margin-inline: auto; display: grid; grid-template-columns: 220px minmax(0, 620px) 300px; gap: 28px; justify-content: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 48px; }
+.sidenav { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 80px); align-self: start; display: grid; gap: 4px; }
+.sidenav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; color: var(--ink); text-decoration: none; font-weight: 500; }
+.sidenav a:hover { background: var(--surface-2); }
+.sidenav a[aria-current="page"] { background: var(--majorelle-soft); color: var(--majorelle); font-weight: 600; }
+.sidenav .count { margin-left: auto; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sidenav .btn { margin-top: 12px; }
+.countries { margin-top: 20px; display: grid; gap: 4px; }
+.countries h2, .aside-block h2 { font-family: var(--font-body); font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 0 12px 4px; }
+.country-btn { display: flex; align-items: center; gap: 10px; background: none; border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; text-align: left; }
+.country-btn:hover { background: var(--surface-2); }
+.country-btn[aria-pressed="true"] { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font-weight: 600; }
+.country-btn .ar { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+.flag { width: 21px; height: 14px; border-radius: 2px; flex: none; box-shadow: 0 0 0 1px rgba(0,0,0,.12); display: inline-block; vertical-align: -2px; }
+
+.main { min-width: 0; display: grid; gap: 16px; align-content: start; }
+.aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 80px); align-self: start; display: grid; gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.aside-block { padding: 14px 4px 10px; }
+.aside-block h2 { padding-inline: 14px; }
+
+/* ---------- Nouveautés (avatars en haut du fil) ---------- */
+.stories { display: flex; gap: 14px; overflow-x: auto; padding: 14px; scrollbar-width: thin; }
+.story { display: grid; justify-items: center; gap: 6px; background: none; border: 0; cursor: pointer; width: 72px; flex: none; padding: 0; }
+.story .ring { padding: 3px; border-radius: 50%; background: conic-gradient(var(--saffron-fill), var(--majorelle), var(--saffron-fill)); }
+.story .ring .avatar { width: 58px; height: 58px; font-size: 18px; box-shadow: 0 0 0 3px var(--surface); }
+.story > span:last-child { font-size: 12px; color: var(--muted); max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 15px; flex: none; }
+
+/* ---------- Composer ---------- */
+.composer { display: flex; gap: 12px; align-items: center; padding: 14px; }
+.composer button.fake-input { flex: 1; text-align: left; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 10px 16px; color: var(--muted); cursor: pointer; min-width: 0; }
+.composer button.fake-input:hover { border-color: var(--majorelle); }
+
+/* ---------- Onglets / filtres ---------- */
+.feed-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 999px; }
+.tab { border: 0; background: none; border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 14px; color: var(--muted); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.active-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 6px 4px 10px; font-size: 13px; cursor: pointer; }
+.filter-pill:hover { border-color: var(--muted); }
+.filter-pill b { font-weight: 400; color: var(--muted); }
+
+/* ---------- Publication ---------- */
+.post { overflow: hidden; }
+.post-head { display: flex; gap: 12px; align-items: center; padding: 14px 16px 10px; }
+.post-who { min-width: 0; flex: 1; }
+.shop-link { background: none; border: 0; padding: 0; font-weight: 700; cursor: pointer; color: var(--ink); font-size: 15px; text-align: left; }
+.shop-link:hover { text-decoration: underline; }
+.post-meta { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.post-text { padding: 0 16px 12px; margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.hashtag { background: none; border: 0; padding: 0; color: var(--majorelle); cursor: pointer; font-weight: 500; }
+.hashtag:hover { text-decoration: underline; }
+.media { position: relative; display: block; width: 100%; border: 0; padding: 0; cursor: pointer; background: none; }
+.media svg { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; max-width: 100%; }
+.price-tag { position: absolute; left: 14px; bottom: 14px; display: flex; align-items: baseline; gap: 8px; background: var(--surface); color: var(--ink);
+  border-radius: 999px; padding: 6px 14px; box-shadow: var(--shadow); font-size: 14px; max-width: calc(100% - 28px); }
+.price-tag strong { font-family: var(--font-display); font-size: 18px; color: var(--saffron); font-variant-numeric: tabular-nums; }
+.price-tag span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.post-actions { display: flex; align-items: center; gap: 4px; padding: 8px 10px; border-top: 1px solid var(--line); }
+.act { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; border-radius: 8px; padding: 7px 10px; cursor: pointer; color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+.act:hover { background: var(--surface-2); color: var(--ink); }
+.act[aria-pressed="true"].like { color: var(--like); }
+.act[aria-pressed="true"].like svg { fill: var(--like); stroke: var(--like); }
+.act[aria-pressed="true"].save { color: var(--majorelle); }
+.act[aria-pressed="true"].save svg { fill: var(--majorelle); stroke: var(--majorelle); }
+.post-actions .btn { margin-left: auto; }
+.comments { padding: 4px 16px 14px; display: grid; gap: 8px; }
+.comment { font-size: 14px; overflow-wrap: anywhere; }
+.comment b { margin-right: 6px; }
+.comment-form { display: flex; gap: 8px; }
+.comment-form input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 7px 14px; font-size: 14px; }
+.more-comments { background: none; border: 0; padding: 0; color: var(--muted); font-size: 13px; cursor: pointer; text-align: left; }
+
+.empty { padding: 32px 20px; text-align: center; color: var(--muted); }
+.empty h3 { color: var(--ink); margin-bottom: 6px; font-size: 19px; }
+
+/* ---------- Colonne droite ---------- */
+.suggest { display: grid; }
+.suggest-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; }
+.suggest-row .who { min-width: 0; flex: 1; }
+.suggest-row .who small { display: block; color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 14px 6px; }
+.tag-chip { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 4px 10px; font-size: 13px; cursor: pointer; color: var(--ink); }
+.tag-chip:hover { border-color: var(--majorelle); color: var(--majorelle); }
+.tag-chip small { color: var(--muted); margin-left: 4px; font-variant-numeric: tabular-nums; }
+.aside-foot { font-size: 12px; color: var(--muted); padding: 0 6px; }
+
+/* ---------- Annuaire des boutiques ---------- */
+.page-head { display: grid; gap: 6px; }
+.page-head h1 { font-size: 28px; }
+.page-head p { margin: 0; color: var(--muted); }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.shop-card { display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+.shop-card .cover { height: 74px; position: relative; }
+.shop-card .cover svg { width: 100%; height: 100%; display: block; }
+.shop-card .body { padding: 0 14px 14px; display: grid; gap: 8px; align-content: start; }
+.shop-card .avatar { width: 54px; height: 54px; margin-top: -27px; font-size: 18px; box-shadow: 0 0 0 3px var(--surface); position: relative; }
+.shop-card p { margin: 0; color: var(--muted); font-size: 14px; }
+.shop-card .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stat-line { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- Profil boutique ---------- */
+.profile-cover { height: 150px; position: relative; overflow: hidden; border-radius: var(--radius) var(--radius) 0 0; }
+.profile-cover svg { display: block; width: 100%; height: 100%; }
+.profile-body { padding: 0 20px 18px; display: grid; gap: 10px; }
+.profile-top { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.profile-top .avatar { position: relative; width: 92px; height: 92px; font-size: 30px; margin-top: -46px; box-shadow: 0 0 0 4px var(--surface); }
+.profile-top .btns { display: flex; gap: 8px; }
+.profile-body h1 { font-size: 26px; }
+.profile-body .bio { margin: 0; max-width: 60ch; }
+.profile-stats { display: flex; gap: 22px; flex-wrap: wrap; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.profile-stats strong { color: var(--ink); font-size: 16px; }
+.product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.product-tile { display: grid; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; color: var(--ink); min-width: 0; }
+.product-tile svg { width: 100%; height: auto; aspect-ratio: 1; border-radius: 10px; display: block; max-width: 100%; }
+.product-tile .name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.product-tile .price { font-size: 13.5px; color: var(--saffron); font-weight: 600; font-variant-numeric: tabular-nums; }
+.back { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; font-weight: 500; }
+.back:hover { color: var(--ink); }
+
+/* ---------- Dialogues ---------- */
+.sheet { border: 1px solid var(--line); border-radius: 16px; padding: 0; background: var(--surface); color: var(--ink);
+  width: min(520px, calc(100vw - 24px)); max-height: calc(100vh - 40px); box-shadow: var(--shadow); }
+.sheet::backdrop { background: rgba(10, 14, 40, .55); }
+.sheet-body { padding: 20px 22px 22px; display: grid; gap: 14px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sheet-head h2 { font-size: 22px; }
+.order-sum { display: flex; gap: 12px; align-items: center; }
+.order-sum > svg { width: 84px; height: 84px; border-radius: 10px; flex: none; }
+.order-sum p { margin: 0; }
+.order-sum .muted { color: var(--muted); font-size: 14px; }
+.field { display: grid; gap: 5px; }
+.field label, .field .lbl { font-size: 13px; font-weight: 600; }
+.field input, .field select, .field textarea { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; background: var(--bg); width: 100%; min-width: 0; }
+.field [aria-invalid="true"] { border-color: var(--like); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; width: max-content; }
+.stepper button { border: 0; background: var(--bg); width: 36px; height: 36px; cursor: pointer; font-size: 18px; }
+.stepper output { min-width: 40px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+.seg { display: flex; gap: 8px; flex-wrap: wrap; }
+.seg label { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 500; font-size: 14px; }
+.seg input { accent-color: var(--majorelle); width: auto; }
+.total { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 12px; }
+.total strong { font-family: var(--font-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.hint { margin: 0; color: var(--muted); font-size: 13.5px; }
+.form-error { margin: 0; color: var(--like); font-size: 14px; min-height: 1em; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.kind-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+.kind-picker label { display: grid; gap: 4px; justify-items: center; font-size: 12px; cursor: pointer; border: 1px solid var(--line); border-radius: 10px; padding: 6px; }
+.kind-picker label:has(input:checked) { border-color: var(--majorelle); box-shadow: 0 0 0 1px var(--majorelle); }
+.kind-picker input { position: absolute; opacity: 0; pointer-events: none; }
+.kind-picker svg { width: 100%; height: auto; aspect-ratio: 1; border-radius: 6px; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 40;
+  background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; max-width: calc(100vw - 32px); box-shadow: var(--shadow); text-align: center; }
+
+/* ---------- Barre d'onglets mobile ---------- */
+.tabbar { display: none; }
+
+@media (max-width: 1180px) {
+  .layout { grid-template-columns: 200px minmax(0, 620px); }
+  .aside { display: none; }
+}
+@media (max-width: 820px) {
+  .layout { grid-template-columns: minmax(0, 1fr); padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .sidenav { display: none; }
+  .top-search { display: none; }
+  .top-actions .btn-publish { display: none; }
+  .tabbar { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--surface); border-top: 1px solid var(--line);
+    padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+  .tabbar a, .tabbar button { display: grid; justify-items: center; gap: 2px; font-size: 11.5px; color: var(--muted); text-decoration: none; background: none; border: 0; padding: 6px 0; cursor: pointer; font-weight: 500; }
+  .tabbar [aria-current="page"] { color: var(--majorelle); }
+  .tabbar .pub svg { color: var(--on-majorelle); background: var(--majorelle); border-radius: 50%; padding: 4px; width: 28px; height: 28px; }
+  .country-strip { display: flex !important; }
+}
+.country-strip { display: none; gap: 8px; overflow-x: auto; }
+@media (max-width: 560px) {
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .field-row { grid-template-columns: 1fr; }
+  .post-actions .btn { padding-inline: 12px; }
+  .act .lbl { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<!-- Définitions partagées : drapeaux et motif khatam -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="pat-khatam" width="40" height="40" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.4" transform="translate(20 20)">
+        <rect x="-9" y="-9" width="18" height="18" />
+        <rect x="-9" y="-9" width="18" height="18" transform="rotate(45)" />
+      </g>
+      <circle cx="0" cy="0" r="2" fill="rgba(255,255,255,.22)" /><circle cx="40" cy="0" r="2" fill="rgba(255,255,255,.22)" />
+      <circle cx="0" cy="40" r="2" fill="rgba(255,255,255,.22)" /><circle cx="40" cy="40" r="2" fill="rgba(255,255,255,.22)" />
+    </pattern>
+    <mask id="m-dz"><rect width="30" height="20" fill="#fff" /><circle cx="16.4" cy="10" r="4.3" fill="#000" /></mask>
+    <mask id="m-tn"><rect width="30" height="20" fill="#fff" /><circle cx="15.9" cy="10" r="3.4" fill="#000" /></mask>
+    <symbol id="flag-DZ" viewBox="0 0 30 20">
+      <rect width="15" height="20" fill="#006233" /><rect x="15" width="15" height="20" fill="#fff" />
+      <circle cx="15" cy="10" r="5.4" fill="#d21034" mask="url(#m-dz)" />
+      <polygon id="star-dz" fill="#d21034" points="" />
+    </symbol>
+    <symbol id="flag-MA" viewBox="0 0 30 20">
+      <rect width="30" height="20" fill="#c1272d" />
+      <polygon id="star-ma" fill="none" stroke="#006233" stroke-width="1" points="" />
+    </symbol>
+    <symbol id="flag-TN" viewBox="0 0 30 20">
+      <rect width="30" height="20" fill="#e70013" /><circle cx="15" cy="10" r="6" fill="#fff" />
+      <circle cx="14.4" cy="10" r="4.4" fill="#e70013" mask="url(#m-tn)" />
+      <polygon id="star-tn" fill="#e70013" points="" />
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#fil" aria-label="Maghreb Platform, accueil">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="8" y="8" width="24" height="24" /><rect x="8" y="8" width="24" height="24" transform="rotate(45 20 20)" /><circle cx="20" cy="20" r="5" />
+      </svg>
+      <span class="brand-name">Maghreb <span>Platform</span></span>
+    </a>
+    <form class="top-search" id="top-search" role="search">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+      <label class="sr-only" for="search-input">Rechercher</label>
+      <input id="search-input" type="search" placeholder="Caftan, huile d'argan, makrout, chéchia…" autocomplete="off">
+    </form>
+    <div class="top-actions">
+      <button type="button" class="btn btn-primary btn-sm btn-publish" data-open-composer>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>Publier un produit
+      </button>
+      <span class="me" title="Votre compte (démo)">VB</span>
+    </div>
+  </div>
+</header>
+<p class="demo-note">Maquette interactive : boutiques et produits fictifs. Aucune commande n'est réellement transmise.</p>
+
+<div class="layout">
+  <nav class="sidenav" aria-label="Navigation principale">
+    <a href="#fil" data-nav="fil"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z" /></svg>Fil d'actualité</a>
+    <a href="#boutiques" data-nav="boutiques"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1.5-4h-13zM5 9v10h14V9M9 19v-5h6v5" /></svg>Boutiques</a>
+    <a href="#enregistres" data-nav="enregistres"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z" /></svg>Enregistrés<span class="count" id="saved-count"></span></a>
+    <a href="#ma-boutique" data-nav="ma-boutique"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" /></svg>Ma boutique</a>
+    <button type="button" class="btn btn-primary" data-open-composer>Publier un produit</button>
+
+    <div class="countries" role="group" aria-label="Filtrer par pays">
+      <h2>Pays</h2>
+      <div id="country-list"></div>
+    </div>
+  </nav>
+
+  <main class="main" id="main" aria-live="polite"></main>
+
+  <aside class="aside" aria-label="Suggestions">
+    <section class="panel aside-block">
+      <h2>Boutiques à suivre</h2>
+      <div class="suggest" id="suggest"></div>
+    </section>
+    <section class="panel aside-block">
+      <h2>Tendances</h2>
+      <div class="tags" id="trends"></div>
+    </section>
+    <p class="aside-foot">Maghreb Platform · Algérie · Maroc · Tunisie · projet DevOps</p>
+  </aside>
+</div>
+
+<nav class="tabbar" aria-label="Navigation">
+  <a href="#fil" data-nav="fil"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z" /></svg>Fil</a>
+  <a href="#boutiques" data-nav="boutiques"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1.5-4h-13zM5 9v10h14V9M9 19v-5h6v5" /></svg>Boutiques</a>
+  <button type="button" class="pub" data-open-composer><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>Publier</button>
+  <a href="#enregistres" data-nav="enregistres"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z" /></svg>Enregistrés</a>
+</nav>
+
+<!-- Commande -->
+<dialog class="sheet" id="order-dialog" aria-labelledby="order-title">
+  <form class="sheet-body" id="order-form" novalidate>
+    <header class="sheet-head">
+      <h2 id="order-title">Commander</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Fermer"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+    </header>
+    <div class="order-sum" id="order-sum"></div>
+    <div class="field">
+      <span class="lbl" id="qty-label">Quantité</span>
+      <div class="stepper" role="group" aria-labelledby="qty-label">
+        <button type="button" data-step="-1" aria-label="Moins">−</button>
+        <output id="qty">1</output>
+        <button type="button" data-step="1" aria-label="Plus">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="lbl">Réception</span>
+      <div class="seg" id="delivery-seg"></div>
+    </div>
+    <div class="field">
+      <label for="order-msg">Message à la boutique</label>
+      <textarea id="order-msg" rows="2" placeholder="Taille, couleur, date souhaitée…"></textarea>
+    </div>
+    <div class="total"><span>Total estimé</span><strong id="order-total"></strong></div>
+    <p class="hint">La boutique confirme la disponibilité et le paiement par message.</p>
+    <div class="actions">
+      <button type="button" class="btn btn-ghost" data-close>Annuler</button>
+      <button type="submit" class="btn btn-saffron">Envoyer la demande</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Publication d'un produit -->
+<dialog class="sheet" id="composer-dialog" aria-labelledby="composer-title">
+  <form class="sheet-body" id="composer-form" novalidate>
+    <header class="sheet-head">
+      <h2 id="composer-title">Publier un produit</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Fermer"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+    </header>
+    <p class="hint">Publié au nom de <strong>Votre boutique</strong> (démo).</p>
+    <div class="field">
+      <span class="lbl">Visuel</span>
+      <div class="kind-picker" id="kind-picker"></div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="c-name">Produit</label>
+        <input id="c-name" required maxlength="80" placeholder="Ex. Caftan brodé main">
+      </div>
+      <div class="field">
+        <label for="c-price">Prix (€)</label>
+        <input id="c-price" required type="number" min="1" max="10000" step="0.5" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field">
+      <label for="c-text">Description</label>
+      <textarea id="c-text" rows="3" maxlength="500" placeholder="Matière, taille, délai… Ajoutez des #hashtags"></textarea>
+    </div>
+    <p class="form-error" id="composer-error" role="alert"></p>
+    <div class="actions">
+      <button type="button" class="btn btn-ghost" data-close>Annuler</button>
+      <button type="submit" class="btn btn-primary">Publier</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const eur = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: n % 1 ? 2 : 0 });
+
+  // ================================================================
+  //  Drapeaux : étoiles calculées une fois
+  // ================================================================
+  const star = (cx, cy, R, r) => Array.from({ length: 10 }, (_, i) => {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5, rad = i % 2 ? r : R;
+    return `${(cx + rad * Math.cos(a)).toFixed(2)},${(cy + rad * Math.sin(a)).toFixed(2)}`;
+  }).join(' ');
+  $('#star-dz').setAttribute('points', star(17.6, 10, 2.4, 1));
+  $('#star-ma').setAttribute('points', [0, 4, 8, 2, 6].map((k) => { const a = -Math.PI / 2 + (k * 2 * Math.PI) / 5; return `${(15 + 5 * Math.cos(a)).toFixed(2)},${(10.4 + 5 * Math.sin(a)).toFixed(2)}`; }).join(' '));
+  $('#star-tn').setAttribute('points', star(16.4, 10, 2.2, .9));
+
+  const COUNTRIES = {
+    DZ: { name: 'Algérie', ar: 'الجزائر' },
+    MA: { name: 'Maroc', ar: 'المغرب' },
+    TN: { name: 'Tunisie', ar: 'تونس' },
+  };
+  const flag = (c) => `<svg class="flag" role="img" aria-label="${COUNTRIES[c].name}"><use href="#flag-${c}" /></svg>`;
+
+  // ================================================================
+  //  Visuels produits (SVG dessinés, aucune image externe)
+  // ================================================================
+  const ART = {
+    caftan: (p) => `<path d="M88 22 L112 22 L120 34 L142 44 L136 74 L126 68 L138 138 L62 138 L74 68 L64 74 L58 44 L80 34 Z" fill="${p.a}"/>
+      <path d="M90 22 L100 36 L110 22" fill="none" stroke="${p.b}" stroke-width="2.5"/><path d="M100 36 V138" stroke="${p.b}" stroke-width="3"/>
+      <rect x="76" y="70" width="48" height="9" rx="2" fill="${p.b}"/>${[44, 52, 60, 90, 100, 110, 120].map((y) => `<circle cx="100" cy="${y}" r="2" fill="${p.c}"/>`).join('')}`,
+    bottle: (p) => `<rect x="92" y="12" width="16" height="14" rx="2" fill="#7a4e24"/>
+      <path d="M90 26 h20 v14 q22 10 22 32 v56 q0 10 -10 10 h-44 q-10 0 -10 -10 v-56 q0 -22 22 -32 z" fill="${p.c}" fill-opacity=".55" stroke="${p.c}" stroke-width="2"/>
+      <path d="M68 82 h64 v46 q0 10 -10 10 h-44 q-10 0 -10 -10 z" fill="${p.a}"/>
+      <rect x="77" y="90" width="46" height="28" rx="3" fill="#fbf6ea"/><rect x="83" y="98" width="34" height="3" fill="${p.b}"/><rect x="83" y="106" width="24" height="3" fill="${p.b}" opacity=".6"/>`,
+    pastry: (p) => `<ellipse cx="100" cy="116" rx="76" ry="18" fill="${p.c}"/><ellipse cx="100" cy="112" rx="66" ry="13" fill="none" stroke="${p.b}" stroke-width="2" stroke-dasharray="3 5"/>
+      ${[[66, 102], [100, 98], [134, 102], [83, 84], [117, 84], [100, 68]].map(([x, y]) => `<polygon points="${x - 17},${y} ${x},${y - 11} ${x + 17},${y} ${x},${y + 11}" fill="${p.a}"/><path d="M${x - 9} ${y} H${x + 9}" stroke="${p.b}" stroke-width="3" stroke-linecap="round"/>`).join('')}`,
+    jar: (p) => `<rect x="74" y="24" width="52" height="16" rx="4" fill="${p.c}"/>
+      <path d="M72 40 h56 q9 0 9 10 v70 q0 14 -14 14 h-46 q-14 0 -14 -14 v-70 q0 -10 9 -10z" fill="${p.a}"/>
+      <rect x="80" y="70" width="40" height="32" rx="4" fill="#fbf6ea"/><path d="M92 92 q6 -16 18 -14 q-4 2 -6 6 q-6 12 -12 8z" fill="${p.a}"/><path d="M110 78 q2 -6 6 -6" stroke="${p.b}" stroke-width="2" fill="none"/>`,
+    plate: (p) => `<circle cx="100" cy="75" r="60" fill="${p.c}"/><circle cx="100" cy="75" r="52" fill="none" stroke="${p.a}" stroke-width="3"/>
+      <circle cx="100" cy="75" r="57" fill="none" stroke="${p.b}" stroke-width="2" stroke-dasharray="2 4"/>
+      ${Array.from({ length: 8 }, (_, k) => `<ellipse cx="100" cy="45" rx="8" ry="20" fill="${p.a}" transform="rotate(${k * 45} 100 75)"/>`).join('')}
+      ${Array.from({ length: 8 }, (_, k) => `<circle cx="100" cy="30" r="3.5" fill="${p.b}" transform="rotate(${k * 45 + 22.5} 100 75)"/>`).join('')}<circle cx="100" cy="75" r="11" fill="${p.b}"/>`,
+    chechia: (p) => `<ellipse cx="100" cy="124" rx="44" ry="8" fill="rgba(0,0,0,.18)"/>
+      <path d="M62 118 L70 50 Q100 38 130 50 L138 118 Q100 130 62 118Z" fill="${p.a}"/><ellipse cx="100" cy="50" rx="30" ry="8" fill="${p.b}"/>
+      <path d="M100 48 V40 Q118 38 124 74" fill="none" stroke="#1b1b22" stroke-width="3"/>${[-6, -3, 0, 3, 6].map((d) => `<path d="M124 72 l${d} 16" stroke="#1b1b22" stroke-width="1.6"/>`).join('')}`,
+    rug: (p) => `<rect x="42" y="16" width="116" height="116" rx="2" fill="${p.c}"/>
+      <path d="M42 16 L158 132 M158 16 L42 132 M42 74 L100 16 L158 74 L100 132 Z" fill="none" stroke="${p.a}" stroke-width="3"/>
+      <path d="M71 45 L100 16 L129 45 L100 74 Z M71 103 L100 74 L129 103 L100 132 Z" fill="none" stroke="${p.a}" stroke-width="1.5"/>
+      ${Array.from({ length: 12 }, (_, k) => `<path d="M${46 + k * 10} 132 v8 M${46 + k * 10} 16 v-8" stroke="${p.c}" stroke-width="2"/>`).join('')}`,
+    jewel: (p) => `<circle cx="100" cy="58" r="36" fill="#cfd3dc" stroke="${p.b}" stroke-width="2"/>
+      ${Array.from({ length: 6 }, (_, k) => `<circle cx="100" cy="34" r="6" fill="${[p.a, '#2a8f5a', '#e2b33b'][k % 3]}" transform="rotate(${k * 60} 100 58)"/>`).join('')}
+      <circle cx="100" cy="58" r="10" fill="${p.a}"/><circle cx="100" cy="58" r="4" fill="#e2b33b"/>
+      ${[76, 100, 124].map((x) => `<path d="M${x} 90 v10" stroke="#cfd3dc" stroke-width="2"/><polygon points="${x - 8},100 ${x + 8},100 ${x},120" fill="#cfd3dc"/><circle cx="${x}" cy="124" r="4" fill="${p.a}"/>`).join('')}`,
+    dates: (p) => `<path d="M40 30 Q100 6 160 34" fill="none" stroke="#6b4a1f" stroke-width="5" stroke-linecap="round"/>
+      ${Array.from({ length: 9 }, (_, k) => `<path d="M${62 + k * 9} 22 L${70 + k * 7} 60" stroke="#c9a15a" stroke-width="1.5"/>`).join('')}
+      ${[[70, 64], [86, 70], [102, 66], [118, 72], [134, 64], [78, 88], [96, 92], [114, 94], [130, 86], [90, 112], [108, 116], [122, 108]].map(([x, y], k) => `<ellipse cx="${x}" cy="${y}" rx="8" ry="12" fill="${k % 2 ? p.a : p.b}" transform="rotate(${(k * 17) % 30 - 15} ${x} ${y})"/>`).join('')}`,
+    tagine: (p) => `<ellipse cx="100" cy="118" rx="72" ry="13" fill="${p.b}"/><ellipse cx="100" cy="112" rx="62" ry="10" fill="${p.a}"/>
+      <path d="M48 112 Q60 104 72 88 Q92 44 100 26 Q108 44 128 88 Q140 104 152 112 Z" fill="${p.a}"/>
+      <path d="M62 102 Q100 92 138 102" fill="none" stroke="${p.c}" stroke-width="3"/><path d="M76 82 Q100 74 124 82" fill="none" stroke="${p.c}" stroke-width="2" stroke-dasharray="4 4"/>
+      <circle cx="100" cy="24" r="7" fill="${p.b}"/>`,
+    lantern: (p) => `<path d="M100 6 V20" stroke="${p.b}" stroke-width="2"/><path d="M84 32 L100 18 L116 32 Z" fill="${p.b}"/>
+      <path d="M80 34 L120 34 L134 72 L120 122 L80 122 L66 72 Z" fill="${p.a}"/>
+      ${Array.from({ length: 5 }, (_, r) => Array.from({ length: 5 }, (_, c) => `<circle cx="${82 + c * 9}" cy="${48 + r * 16}" r="2.4" fill="${p.c}"/>`).join('')).join('')}
+      <rect x="78" y="122" width="44" height="8" rx="2" fill="${p.b}"/>`,
+  };
+  const KIND_LABEL = { caftan: 'Tenue', bottle: 'Huile', pastry: 'Pâtisserie', jar: 'Conserve', plate: 'Céramique', chechia: 'Chéchia', rug: 'Tapis', jewel: 'Bijou', dates: 'Dattes', tagine: 'Tajine', lantern: 'Lanterne' };
+  const PALETTES = {
+    caftan: { bg: '#2f2a6b', a: '#b8324f', b: '#e8b84a', c: '#f6e7b8' },
+    bottle: { bg: '#3a6b4f', a: '#d99a2b', b: '#7a4e24', c: '#f2d27a' },
+    pastry: { bg: '#7b3b2a', a: '#d4913c', b: '#5a2a16', c: '#f4e6cf' },
+    jar: { bg: '#24526b', a: '#c62f2a', b: '#2f7d3a', c: '#3a3a42' },
+    plate: { bg: '#1d3f8a', a: '#2a63c9', b: '#e8b33a', c: '#f6f1e4' },
+    chechia: { bg: '#2c5560', a: '#b81f2d', b: '#8d1622', c: '#000' },
+    rug: { bg: '#5c4636', a: '#2a2522', b: '#000', c: '#efe6d4' },
+    jewel: { bg: '#1f5f57', a: '#c0392b', b: '#9aa1b0', c: '#000' },
+    dates: { bg: '#a5642b', a: '#5d2f14', b: '#8a4a20', c: '#000' },
+    tagine: { bg: '#3d4f8f', a: '#b9542f', b: '#7e3a20', c: '#f2c66b' },
+    lantern: { bg: '#21284f', a: '#c08a2e', b: '#7a5418', c: '#fff3c4' },
+  };
+  function art(kind, { w = 200, h = 150, square = false, bg } = {}) {
+    const p = PALETTES[kind];
+    const vb = square ? '25 0 150 150' : `0 0 ${w} ${h}`;
+    return `<svg viewBox="${vb}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect x="-50" y="-50" width="300" height="250" fill="${bg || p.bg}"/><rect x="-50" y="-50" width="300" height="250" fill="url(#pat-khatam)"/>
+      <ellipse cx="100" cy="138" rx="70" ry="9" fill="rgba(0,0,0,.18)"/>${ART[kind](p)}</svg>`;
+  }
+  const cover = (color) => `<svg viewBox="0 0 600 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="600" height="150" fill="${color}"/><rect width="600" height="150" fill="url(#pat-khatam)"/></svg>`;
+
+  // ================================================================
+  //  Données de démonstration (boutiques et produits fictifs)
+  // ================================================================
+  const SHOPS = [
+    { id: 'dar-caftan', ini: 'DC', name: 'Dar Caftan', country: 'MA', city: 'Fès', ships: 'Expédie depuis Paris', color: '#8a2c45', followers: 12400, rating: 4.9, bio: 'Caftans et takchitas brodés main par des maâlems de Fès. Retouches sur mesure à Paris.' },
+    { id: 'atlas-argan', ini: 'AA', name: 'Atlas Argan', country: 'MA', city: 'Agadir', ships: 'Livraison France 5 jours', color: '#3a6b4f', followers: 8350, rating: 4.8, bio: "Coopérative de femmes du Souss : huile d'argan alimentaire et cosmétique, amlou, savon noir." },
+    { id: 'karakou-co', ini: 'KC', name: 'Karakou & Co', country: 'DZ', city: 'Alger', ships: 'Atelier à Lyon', color: '#2f2a6b', followers: 6120, rating: 4.7, bio: 'Karakous en velours et fetla dorée, chedda de Tlemcen en location pour les mariages.' },
+    { id: 'douceurs-oran', ini: 'DO', name: "Les Douceurs d'Oran", country: 'DZ', city: 'Oran', ships: 'Atelier à Marseille', color: '#7b3b2a', followers: 15900, rating: 4.9, bio: 'Makrout, griwech, dziriettes et mchewek, cuits chaque jeudi. Plateaux pour fêtes et Aïd.' },
+    { id: 'cap-bon', ini: 'HC', name: 'Harissa du Cap Bon', country: 'TN', city: 'Nabeul', ships: 'Livraison France 4 jours', color: '#9c2a24', followers: 4980, rating: 4.8, bio: 'Harissa traditionnelle séchée au soleil, tabel, bsissa et huile d’olive de Sfax.' },
+    { id: 'ceramiques-nabeul', ini: 'CN', name: 'Céramiques de Nabeul', country: 'TN', city: 'Nabeul', ships: 'Emballage renforcé', color: '#1d3f8a', followers: 7210, rating: 4.6, bio: 'Plats, tajines et assiettes peints à la main dans notre atelier familial depuis 1974.' },
+    { id: 'chechia-medina', ini: 'CM', name: 'Chéchia Médina', country: 'TN', city: 'Tunis', ships: 'Souk El Chaouachia', color: '#2c5560', followers: 2310, rating: 4.9, bio: 'Chéchias en laine foulée et teinte au kermès, faites dans le souk des chaouachis.' },
+    { id: 'beni-ouarain', ini: 'BO', name: 'Tapis Beni Ouarain', country: 'MA', city: 'Midelt', ships: 'Livraison offerte dès 300 €', color: '#5c4636', followers: 9870, rating: 4.7, bio: 'Tapis en laine tissés par les femmes du Moyen Atlas, pièces uniques numérotées.' },
+    { id: 'bijoux-kabylie', ini: 'BK', name: 'Bijoux de Kabylie', country: 'DZ', city: 'Beni Yenni', ships: 'Expédie depuis Montreuil', color: '#1f5f57', followers: 5440, rating: 4.8, bio: "Argent émaillé et corail des Aït Yenni : fibules, bracelets et colliers d'artisans." },
+    { id: 'dattes-biskra', ini: 'DB', name: 'Dattes de Biskra', country: 'DZ', city: 'Biskra', ships: 'Arrivage chaque semaine', color: '#a5642b', followers: 3760, rating: 4.9, bio: 'Deglet Nour en branche, récolte directe des palmeraies de Tolga.' },
+  ];
+  const ME = { id: 'ma-boutique', ini: 'VB', name: 'Votre boutique', country: 'MA', city: 'Paris', ships: 'Boutique de démonstration', color: '#b37708', followers: 0, rating: 0, bio: 'Les produits que vous publiez apparaissent ici et dans le fil.' };
+
+  const P = (id, shop, kind, product, price, text, ago, likes, comments = []) => ({ id, shop, kind, product, price, text, ago, likes, comments });
+  const BASE_POSTS = [
+    P('p1', 'douceurs-oran', 'pastry', 'Plateau de makrout au miel (1 kg)', 24, 'Fournée de jeudi sortie du four ✨ Makrout à la semoule fine, pâte de dattes maison et miel de fleurs. Commandes pour le week-end jusqu’à vendredi midi.\n#makrout #gâteauxalgériens #aïd', 42, 318, [['Samira', 'Les meilleurs de Marseille, je confirme !'], ['Yacine', 'Vous livrez à Aix ?']]),
+    P('p2', 'dar-caftan', 'caftan', 'Caftan en velours, broderie sfifa', 289, 'Nouvelle pièce de la collection hiver : velours bordeaux, sfifa et akaad dorés faits main. Du 36 au 46, retouches offertes.\n#caftan #takchita #mariage', 95, 1240, [['Nadia', 'Magnifique 😍 il existe en vert émeraude ?'], ['Dar Caftan', 'Oui Nadia, sur commande en 3 semaines !']]),
+    P('p3', 'cap-bon', 'jar', 'Harissa traditionnelle, pot 350 g', 7.5, 'Récolte de piments baklouti de cette saison, séchés au soleil puis moulus à l’ancienne avec ail et carvi.\n#harissa #cuisinetunisienne', 180, 206, [['Mehdi', 'Ma mère dit que c’est comme celle de Nabeul 👌']]),
+    P('p4', 'atlas-argan', 'bottle', "Huile d'argan alimentaire, 250 ml", 19, 'Pressée à froid à la coopérative, graines torréfiées légèrement : goût de noisette. Idéale avec l’amlou du petit-déjeuner.\n#huiledargan #amlou #maroc', 300, 512, []),
+    P('p5', 'karakou-co', 'caftan', 'Karakou velours noir et fetla', 420, 'Karakou algérois en velours noir, fetla dorée sur la veste et seroual chelka assorti. Location possible pour un mariage.\n#karakou #algéroise #mariage', 520, 874, [['Lina', 'La finition est incroyable']]),
+    P('p6', 'ceramiques-nabeul', 'plate', 'Grand plat à couscous peint main', 38, 'Ø 34 cm, émail alimentaire, motif fleur de jasmin bleu et jaune. Chaque plat est unique.\n#céramique #nabeul #couscous', 760, 389, []),
+    P('p7', 'beni-ouarain', 'rug', 'Tapis Beni Ouarain 160 × 230', 690, 'Laine écrue non teinte, losanges noirs tracés à main levée. Pièce n° 214, tissée en 7 semaines.\n#tapisberbère #beniouarain #déco', 1440, 1018, [['Claire', 'Il est encore disponible ?'], ['Tapis Beni Ouarain', 'Oui ! Envoyez-nous une demande 🙂']]),
+    P('p8', 'bijoux-kabylie', 'jewel', 'Fibule kabyle en argent émaillé', 145, 'Tabzimt en argent, émail vert, jaune et bleu, cabochons de corail. Poinçonnée, livrée avec certificat.\n#bijouxkabyles #tabzimt #artisanat', 2100, 655, []),
+    P('p9', 'chechia-medina', 'chechia', 'Chéchia tunisoise rouge', 45, 'Laine mérinos tricotée, foulée puis teinte au kermès. Pompon de soie noire. Tailles 55 à 60.\n#chéchia #tunis #artisanat', 2880, 233, []),
+    P('p10', 'dattes-biskra', 'dates', 'Deglet Nour en branche, 2 kg', 22, 'Arrivage de Tolga cette semaine : dattes translucides et mielleuses, parfaites pour le Ramadan et les fêtes.\n#dattes #degletnour #biskra', 3600, 471, [['Karim', 'Commandé la semaine dernière, top qualité']]),
+    P('p11', 'atlas-argan', 'tagine', 'Tajine en terre cuite émaillée', 34, 'Tajine de cuisson Ø 30 cm, compatible gaz et four. Livré avec notre fiche de culottage.\n#tajine #cuisinemarocaine', 4320, 198, []),
+    P('p13', 'dar-caftan', 'caftan', 'Takchita deux pièces en satin', 345, 'Takchita satin vert émeraude, dfina en mousseline brodée, mdamma dorée offerte.\n#takchita #caftan', 6200, 980, []),
+    P('p14', 'douceurs-oran', 'pastry', 'Griwech et dziriettes, boîte mixte', 29, 'Boîte de 30 pièces : griwech au miel, dziriettes aux amandes et mchewek. Idéal pour offrir.\n#gâteauxalgériens #aïd', 6900, 402, []),
+    P('p15', 'bijoux-kabylie', 'jewel', 'Bracelet kabyle émaillé', 98, 'Bracelet manchette en argent, émail vert et jaune, motifs triangulaires de Beni Yenni.\n#bijouxkabyles #artisanat', 7600, 288, []),
+    P('p16', 'cap-bon', 'bottle', "Huile d'olive de Sfax, 1 L", 16, 'Première pression à froid, variété chemlali, récolte de novembre.\n#huiledolive #cuisinetunisienne', 8100, 175, []),
+    P('p17', 'chechia-medina', 'chechia', 'Chéchia enfant bordeaux', 29, 'Version enfant (tailles 50 à 54), pompon court, parfaite pour les fêtes.\n#chéchia #tunis', 9300, 96, []),
+    P('p18', 'karakou-co', 'jewel', 'Parure chedda de Tlemcen (location)', 180, 'Location de la parure complète pour un week-end : chachia, khit errouh, colliers. Caution demandée.\n#chedda #tlemcen #mariage', 10200, 512, []),
+    P('p19', 'beni-ouarain', 'rug', 'Coussin Beni Ouarain 45 × 45', 59, 'Chutes de laine des grands tapis, cousues en housses de coussin. Garnissage inclus.\n#tapisberbère #déco', 11000, 214, []),
+    P('p20', 'dattes-biskra', 'dates', 'Dattes Mech Degla, 1 kg', 9, 'Dattes sèches et moins sucrées, parfaites pour la pâtisserie et le makrout.\n#dattes #biskra', 12500, 133, []),
+    P('p12', 'ceramiques-nabeul', 'lantern', 'Lanterne en laiton ciselé', 56, 'Lanterne ajourée à la main, 32 cm, verre ambré. Belle lumière pour les soirées de Ramadan.\n#déco #lanterne #ramadan', 5040, 342, []),
+  ];
+
+  // ================================================================
+  //  État (persisté dans le navigateur quand c'est possible)
+  // ================================================================
+  const KEY = 'maghreb-social-demo-v1';
+  const st = { liked: new Set(['p2']), saved: new Set(), following: new Set(['douceurs-oran', 'dar-caftan', 'cap-bon']), extraComments: {}, myPosts: [] };
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (s) {
+      st.liked = new Set(s.liked); st.saved = new Set(s.saved); st.following = new Set(s.following);
+      st.extraComments = s.extraComments || {}; st.myPosts = s.myPosts || [];
+    }
+  } catch { /* stockage indisponible */ }
+  const save = () => {
+    try { localStorage.setItem(KEY, JSON.stringify({ liked: [...st.liked], saved: [...st.saved], following: [...st.following], extraComments: st.extraComments, myPosts: st.myPosts })); } catch { /* ignoré */ }
+  };
+  const ui = { tab: 'pour-vous', country: '', tag: '', q: '', openComments: new Set() };
+
+  const shopOf = (id) => (id === ME.id ? ME : SHOPS.find((s) => s.id === id));
+  const allPosts = () => [...st.myPosts, ...[...BASE_POSTS].sort((a, b) => a.ago - b.ago)];
+  const postOf = (id) => allPosts().find((p) => p.id === id);
+  const commentsOf = (p) => [...p.comments, ...(st.extraComments[p.id] || [])];
+  const followersOf = (s) => s.followers + (st.following.has(s.id) ? 1 : 0);
+  const ago = (m) => (m < 60 ? `il y a ${m} min` : m < 1440 ? `il y a ${Math.round(m / 60)} h` : `il y a ${Math.round(m / 1440)} j`);
+  const fmtK = (n) => (n >= 1000 ? `${(n / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} k` : String(n));
+  const plural = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
+  const norm = (s) => String(s).toLocaleLowerCase('fr').normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const tagsOf = (p) => (p.text.match(/#[\p{L}\d_]+/gu) || []).map((t) => norm(t.slice(1)));
+
+  const avatar = (s, cls = '') => `<span class="avatar ${cls}" style="background:${s.color}" aria-hidden="true">${esc(s.ini)}</span>`;
+  const linkify = (t) => esc(t).replace(/#([\p{L}\d_]+)/gu, (m, w) => `<button type="button" class="hashtag" data-tag="${esc(norm(w))}">#${w}</button>`);
+
+  // ================================================================
+  //  Composants
+  // ================================================================
+  function postHTML(p) {
+    const s = shopOf(p.shop);
+    const liked = st.liked.has(p.id), saved = st.saved.has(p.id);
+    const cs = commentsOf(p);
+    const open = ui.openComments.has(p.id);
+    const shown = open ? cs : cs.slice(-2);
+    const follow = s.id !== ME.id && !st.following.has(s.id)
+      ? `<button type="button" class="btn btn-ghost btn-sm btn-follow" data-follow="${s.id}" aria-pressed="false">Suivre</button>` : '';
+    return `<article class="panel post" data-post="${p.id}">
+      <header class="post-head">
+        ${avatar(s)}
+        <div class="post-who">
+          <button type="button" class="shop-link" data-shop="${s.id}">${esc(s.name)}</button>
+          <div class="post-meta">${flag(s.country)}<span>${COUNTRIES[s.country].name} · ${esc(s.city)}</span><span aria-hidden="true">·</span><span>${ago(p.ago)}</span></div>
+        </div>
+        ${follow}
+      </header>
+      <p class="post-text">${linkify(p.text)}</p>
+      <button type="button" class="media" data-order="${p.id}" aria-label="Commander ${esc(p.product)}">
+        ${art(p.kind)}
+        <span class="price-tag"><strong>${eur(p.price)}</strong><span>${esc(p.product)}</span></span>
+      </button>
+      <div class="post-actions">
+        <button type="button" class="act like" data-like="${p.id}" aria-pressed="${liked}" aria-label="J'aime">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>${fmtK(p.likes + (liked ? 1 : 0))}
+        </button>
+        <button type="button" class="act" data-comment="${p.id}" aria-label="Commenter">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4z"/></svg>${cs.length}
+        </button>
+        <button type="button" class="act save" data-save="${p.id}" aria-pressed="${saved}" aria-label="Enregistrer">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16l-6-4-6 4z"/></svg><span class="lbl">${saved ? 'Enregistré' : 'Enregistrer'}</span>
+        </button>
+        <button type="button" class="btn btn-saffron btn-sm" data-order="${p.id}">Commander</button>
+      </div>
+      <div class="comments">
+        ${cs.length > 2 && !open ? `<button type="button" class="more-comments" data-more="${p.id}">Voir les ${cs.length} commentaires</button>` : ''}
+        ${shown.map(([who, txt]) => `<p class="comment"><b>${esc(who)}</b>${esc(txt)}</p>`).join('')}
+        <form class="comment-form" data-comment-form="${p.id}">
+          <label class="sr-only" for="c-${p.id}">Ajouter un commentaire</label>
+          <input id="c-${p.id}" placeholder="Ajouter un commentaire…" maxlength="300" autocomplete="off">
+          <button type="submit" class="btn btn-ghost btn-sm">Publier</button>
+        </form>
+      </div>
+    </article>`;
+  }
+
+  function filterPosts(list) {
+    return list.filter((p) => {
+      const s = shopOf(p.shop);
+      if (ui.country && s.country !== ui.country) return false;
+      if (ui.tag && !tagsOf(p).includes(ui.tag)) return false;
+      if (ui.q) {
+        const q = norm(ui.q);
+        if (![p.product, p.text, s.name, s.city, COUNTRIES[s.country].name].some((f) => norm(f).includes(q))) return false;
+      }
+      return true;
+    });
+  }
+
+  function filtersHTML() {
+    const pills = [];
+    if (ui.country) pills.push(`<button type="button" class="filter-pill" data-clear="country">${flag(ui.country)} ${COUNTRIES[ui.country].name} <b>×</b></button>`);
+    if (ui.tag) pills.push(`<button type="button" class="filter-pill" data-clear="tag">#${esc(ui.tag)} <b>×</b></button>`);
+    if (ui.q) pills.push(`<button type="button" class="filter-pill" data-clear="q">« ${esc(ui.q)} » <b>×</b></button>`);
+    return pills.length ? `<div class="active-filters" aria-label="Filtres actifs">${pills.join('')}</div>` : '';
+  }
+
+  function countryStripHTML() {
+    return `<div class="country-strip" role="group" aria-label="Filtrer par pays">${Object.entries(COUNTRIES).map(([c, v]) =>
+      `<button type="button" class="filter-pill" data-country="${c}" aria-pressed="${ui.country === c}" style="${ui.country === c ? 'border-color:var(--majorelle)' : ''}">${flag(c)} ${v.name}</button>`).join('')}</div>`;
+  }
+
+  // ================================================================
+  //  Vues
+  // ================================================================
+  function viewFeed() {
+    const followed = SHOPS.filter((s) => st.following.has(s.id));
+    let list = allPosts();
+    if (ui.tab === 'abonnements') list = list.filter((p) => st.following.has(p.shop) || p.shop === ME.id);
+    list = filterPosts(list);
+    return `
+      <section class="panel stories" aria-label="Nouveautés des boutiques">
+        ${SHOPS.map((s) => `<button type="button" class="story" data-shop="${s.id}"><span class="ring">${avatar(s)}</span><span>${esc(s.name)}</span></button>`).join('')}
+      </section>
+      <section class="panel composer">
+        ${avatar(ME)}
+        <button type="button" class="fake-input" data-open-composer><span class="ar" lang="ar">مرحبا</span> Marhba ! Quoi de neuf dans votre boutique ?</button>
+      </section>
+      ${countryStripHTML()}
+      <div class="feed-head">
+        <div class="tabs" role="tablist" aria-label="Fil">
+          <button type="button" class="tab" role="tab" data-tab="pour-vous" aria-selected="${ui.tab === 'pour-vous'}">Pour vous</button>
+          <button type="button" class="tab" role="tab" data-tab="abonnements" aria-selected="${ui.tab === 'abonnements'}">Abonnements · ${followed.length}</button>
+        </div>
+        ${filtersHTML()}
+      </div>
+      ${list.length ? list.map(postHTML).join('') : `<div class="panel empty"><h3>Rien pour ces filtres</h3><p>Essayez un autre pays ou retirez un filtre.</p><button type="button" class="btn btn-ghost" data-clear="all">Tout afficher</button></div>`}`;
+  }
+
+  function viewShops() {
+    const shops = SHOPS.filter((s) => !ui.country || s.country === ui.country);
+    return `
+      <header class="page-head"><h1>Boutiques</h1><p>${shops.length} boutiques de créateurs et commerçants d'Algérie, du Maroc et de Tunisie.</p></header>
+      ${countryStripHTML()}
+      ${filtersHTML()}
+      <div class="shop-grid">
+        ${shops.map((s) => `<article class="panel shop-card">
+          <div class="cover">${cover(s.color)}</div>
+          <div class="body">
+            ${avatar(s)}
+            <div class="row"><button type="button" class="shop-link" data-shop="${s.id}">${esc(s.name)}</button>
+              <button type="button" class="btn btn-sm btn-follow ${st.following.has(s.id) ? '' : 'btn-primary'}" data-follow="${s.id}" aria-pressed="${st.following.has(s.id)}">${st.following.has(s.id) ? 'Abonné' : 'Suivre'}</button></div>
+            <div class="post-meta">${flag(s.country)}<span>${COUNTRIES[s.country].name} · ${esc(s.city)}</span></div>
+            <p>${esc(s.bio)}</p>
+            <span class="stat-line">${fmtK(followersOf(s))} abonnés · ★ ${s.rating.toLocaleString('fr-FR')} · ${plural(allPosts().filter((p) => p.shop === s.id).length, 'produit')}</span>
+          </div>
+        </article>`).join('')}
+      </div>`;
+  }
+
+  function viewShop(id) {
+    const s = shopOf(id);
+    if (!s) return viewFeed();
+    const posts = allPosts().filter((p) => p.shop === s.id);
+    const isMe = s.id === ME.id;
+    return `
+      <button type="button" class="back" data-back><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Retour</button>
+      <article class="panel">
+        <div class="profile-cover">${cover(s.color)}</div>
+        <div class="profile-body">
+          <div class="profile-top">
+            ${avatar(s)}
+            <div class="btns">${isMe
+              ? '<button type="button" class="btn btn-primary" data-open-composer>Publier un produit</button>'
+              : `<button type="button" class="btn btn-follow ${st.following.has(s.id) ? '' : 'btn-primary'}" data-follow="${s.id}" aria-pressed="${st.following.has(s.id)}">${st.following.has(s.id) ? 'Abonné' : 'Suivre'}</button>`}</div>
+          </div>
+          <h1>${esc(s.name)}</h1>
+          <div class="post-meta">${flag(s.country)}<span>${COUNTRIES[s.country].name} · ${esc(s.city)} · ${esc(s.ships)}</span></div>
+          <p class="bio">${esc(s.bio)}</p>
+          <div class="profile-stats">
+            <span><strong>${posts.length}</strong> ${posts.length > 1 ? 'produits' : 'produit'}</span>
+            <span><strong>${fmtK(followersOf(s))}</strong> abonnés</span>
+            ${s.rating ? `<span><strong>★ ${s.rating.toLocaleString('fr-FR')}</strong> avis clients</span>` : ''}
+          </div>
+        </div>
+      </article>
+      ${posts.length ? `<section class="panel" style="padding:14px"><div class="product-grid">
+        ${posts.map((p) => `<button type="button" class="product-tile" data-order="${p.id}">${art(p.kind, { square: true })}<span class="name">${esc(p.product)}</span><span class="price">${eur(p.price)}</span></button>`).join('')}
+      </div></section>
+      ${posts.map(postHTML).join('')}`
+      : `<div class="panel empty"><h3>Aucun produit pour l'instant</h3><p>Publiez votre premier produit : il apparaîtra ici et dans le fil de vos abonnés.</p><button type="button" class="btn btn-primary" data-open-composer>Publier un produit</button></div>`}`;
+  }
+
+  function viewSaved() {
+    const list = allPosts().filter((p) => st.saved.has(p.id));
+    return `<header class="page-head"><h1>Enregistrés</h1><p>Les produits que vous gardez de côté.</p></header>
+      ${list.length ? list.map(postHTML).join('') : '<div class="panel empty"><h3>Rien d’enregistré</h3><p>Touchez « Enregistrer » sous un produit pour le retrouver ici.</p></div>'}`;
+  }
+
+  function renderAside() {
+    $('#country-list').innerHTML = Object.entries(COUNTRIES).map(([c, v]) => `
+      <button type="button" class="country-btn" data-country="${c}" aria-pressed="${ui.country === c}">${flag(c)}<span>${v.name}</span><span class="ar" lang="ar">${v.ar}</span></button>`).join('');
+    const sugg = SHOPS.filter((s) => !st.following.has(s.id)).slice(0, 4);
+    $('#suggest').innerHTML = sugg.length ? sugg.map((s) => `
+      <div class="suggest-row">${avatar(s)}<div class="who"><button type="button" class="shop-link" data-shop="${s.id}">${esc(s.name)}</button><small>${flag(s.country)} ${esc(s.city)} · ${fmtK(followersOf(s))} abonnés</small></div>
+      <button type="button" class="btn btn-primary btn-sm btn-follow" data-follow="${s.id}" aria-pressed="false">Suivre</button></div>`).join('')
+      : '<p class="hint" style="padding:6px 14px">Vous suivez toutes les boutiques.</p>';
+    const counts = {}, shown = {};
+    allPosts().forEach((p) => (p.text.match(/#[\p{L}\d_]+/gu) || []).forEach((raw) => {
+      const t = norm(raw.slice(1)); counts[t] = (counts[t] || 0) + p.likes; shown[t] ||= raw.slice(1);
+    }));
+    $('#trends').innerHTML = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10)
+      .map(([t]) => `<button type="button" class="tag-chip" data-tag="${esc(t)}">#${esc(shown[t])}</button>`).join('');
+    $('#saved-count').textContent = st.saved.size || '';
+  }
+
+  // ================================================================
+  //  Routage (#fil, #boutiques, #enregistres, #ma-boutique, #b-<boutique>)
+  // ================================================================
+  function current() {
+    const h = location.hash.slice(1);
+    if (h.startsWith('b-')) return { view: 'shop', id: h.slice(2) };
+    if (h === 'ma-boutique') return { view: 'shop', id: ME.id, nav: 'ma-boutique' };
+    if (h === 'boutiques' || h === 'enregistres') return { view: h };
+    return { view: 'fil' };
+  }
+  function render({ keepScroll = false } = {}) {
+    const r = current();
+    const y = scrollY;
+    $('#main').innerHTML = r.view === 'shop' ? viewShop(r.id) : r.view === 'boutiques' ? viewShops() : r.view === 'enregistres' ? viewSaved() : viewFeed();
+    const nav = r.nav || (r.view === 'shop' ? '' : r.view);
+    document.querySelectorAll('[data-nav]').forEach((a) => (a.dataset.nav === nav ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+    renderAside();
+    if (keepScroll) scrollTo(0, y);
+  }
+  const refresh = () => render({ keepScroll: true });
+  const go = (hash) => { if (location.hash === hash) render(); else location.hash = hash; scrollTo(0, 0); };
+
+  // ================================================================
+  //  Commande
+  // ================================================================
+  let order = null;
+  function openOrder(id) {
+    const p = postOf(id); const s = shopOf(p.shop);
+    order = { p, qty: 1, delivery: 'livraison' };
+    $('#order-sum').innerHTML = `${art(p.kind, { square: true })}<div><p><strong>${esc(p.product)}</strong></p><p class="muted">${esc(s.name)} · ${flag(s.country)} ${esc(s.city)}</p><p>${eur(p.price)} l'unité</p></div>`;
+    $('#delivery-seg').innerHTML = [['livraison', 'Livraison en France', 6.9], ['retrait', 'Retrait / remise en main propre', 0]].map(([v, l, fee]) =>
+      `<label><input type="radio" name="delivery" value="${v}" ${v === 'livraison' ? 'checked' : ''}> ${l}${fee ? ` · ${eur(fee)}` : ''}</label>`).join('');
+    $('#order-msg').value = '';
+    updateOrder();
+    $('#order-dialog').showModal();
+  }
+  function updateOrder() {
+    $('#qty').textContent = order.qty;
+    const fee = order.delivery === 'livraison' ? 6.9 : 0;
+    $('#order-total').textContent = eur(order.p.price * order.qty + fee);
+  }
+
+  // ================================================================
+  //  Publication
+  // ================================================================
+  function openComposer() {
+    $('#kind-picker').innerHTML = Object.keys(ART).map((k, i) => `<label><input type="radio" name="kind" value="${k}" ${i === 0 ? 'checked' : ''}>${art(k, { square: true })}<span>${KIND_LABEL[k]}</span></label>`).join('');
+    $('#composer-form').reset();
+    $('#composer-form').querySelector('input[name=kind]').checked = true;
+    $('#composer-error').textContent = '';
+    $('#composer-form').querySelectorAll('[aria-invalid]').forEach((e) => e.removeAttribute('aria-invalid'));
+    $('#composer-dialog').showModal();
+  }
+
+  // ================================================================
+  //  Notifications
+  // ================================================================
+  let tt;
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => { t.hidden = true; }, 3400); }
+
+  // ================================================================
+  //  Événements
+  // ================================================================
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    const q = (sel) => t.closest(sel);
+    let el;
+    if (q('[data-close]')) return q('dialog').close();
+    if (q('[data-open-composer]')) return openComposer();
+    if ((el = q('[data-order]'))) return openOrder(el.dataset.order);
+    if ((el = q('[data-shop]'))) return go(el.dataset.shop === ME.id ? '#ma-boutique' : `#b-${el.dataset.shop}`);
+    if (q('[data-back]')) return history.length > 1 ? history.back() : go('#fil');
+    if ((el = q('[data-like]'))) { const id = el.dataset.like; st.liked.has(id) ? st.liked.delete(id) : st.liked.add(id); save(); return refresh(); }
+    if ((el = q('[data-save]'))) {
+      const id = el.dataset.save; const was = st.saved.has(id);
+      was ? st.saved.delete(id) : st.saved.add(id); save(); refresh();
+      return toast(was ? 'Retiré des enregistrés.' : 'Ajouté à vos enregistrés.');
+    }
+    if ((el = q('[data-follow]'))) {
+      const id = el.dataset.follow; const s = shopOf(id); const was = st.following.has(id);
+      was ? st.following.delete(id) : st.following.add(id); save(); refresh();
+      return toast(was ? `Vous ne suivez plus ${s.name}.` : `Vous suivez ${s.name}.`);
+    }
+    if ((el = q('[data-comment]'))) { const inp = $(`#c-${el.dataset.comment}`); return inp && inp.focus(); }
+    if ((el = q('[data-more]'))) { ui.openComments.add(el.dataset.more); return refresh(); }
+    if ((el = q('[data-tab]'))) { ui.tab = el.dataset.tab; return refresh(); }
+    if ((el = q('[data-tag]'))) { ui.tag = el.dataset.tag; if (current().view !== 'fil') return go('#fil'); return render(); }
+    if ((el = q('[data-country]'))) { ui.country = ui.country === el.dataset.country ? '' : el.dataset.country; return refresh(); }
+    if ((el = q('[data-clear]'))) {
+      const k = el.dataset.clear;
+      if (k === 'all') { ui.country = ''; ui.tag = ''; ui.q = ''; } else ui[k] = '';
+      if (k === 'q' || k === 'all') $('#search-input').value = '';
+      return refresh();
+    }
+    if ((el = q('[data-step]'))) { order.qty = Math.min(20, Math.max(1, order.qty + Number(el.dataset.step))); return updateOrder(); }
+  });
+
+  document.addEventListener('submit', (e) => {
+    const f = e.target;
+    if (f.matches('[data-comment-form]')) {
+      e.preventDefault();
+      const inp = f.querySelector('input'); const txt = inp.value.trim();
+      if (!txt) return;
+      const id = f.dataset.commentForm;
+      (st.extraComments[id] ||= []).push(['Vous', txt]); ui.openComments.add(id); save(); refresh();
+      const again = $(`#c-${id}`); if (again) again.focus();
+    }
+  });
+
+  $('#order-dialog').addEventListener('change', (e) => { if (e.target.name === 'delivery') { order.delivery = e.target.value; updateOrder(); } });
+  $('#order-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const s = shopOf(order.p.shop);
+    $('#order-dialog').close();
+    toast(`Demande envoyée à ${s.name}. Réponse dans votre messagerie.`);
+  });
+
+  $('#composer-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('#c-name'), price = $('#c-price');
+    const bad = [name, price].filter((el) => !el.checkValidity());
+    [name, price].forEach((el) => el.toggleAttribute('aria-invalid', bad.includes(el)));
+    if (bad.length) { $('#composer-error').textContent = bad[0] === name ? 'Donnez un nom au produit.' : 'Indiquez un prix entre 1 et 10 000 €.'; bad[0].focus(); return; }
+    const kind = e.target.querySelector('input[name=kind]:checked').value;
+    st.myPosts.unshift({ id: `m${Date.now()}`, shop: ME.id, kind, product: name.value.trim(), price: Number(price.value), text: $('#c-text').value.trim() || name.value.trim(), ago: 0, likes: 0, comments: [] });
+    save();
+    $('#composer-dialog').close();
+    ui.country = ''; ui.tag = ''; ui.q = ''; ui.tab = 'pour-vous'; $('#search-input').value = '';
+    go('#fil');
+    toast('Produit publié dans le fil.');
+  });
+
+  let sTimer;
+  $('#search-input').addEventListener('input', (e) => { clearTimeout(sTimer); sTimer = setTimeout(() => { ui.q = e.target.value.trim(); if (current().view !== 'fil') go('#fil'); else refresh(); }, 200); });
+  $('#top-search').addEventListener('submit', (e) => e.preventDefault());
+  document.querySelectorAll('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+  window.addEventListener('hashchange', () => render());
+
+  render();
+})();
+</script>

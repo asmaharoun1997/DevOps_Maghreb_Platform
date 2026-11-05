@@ -1,0 +1,440 @@
+<title>Maghreb Platform sur Kubernetes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@600;700&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : un grand schéma (physique en haut, logique Kubernetes en bas), puis des tableaux de référence.
+   Couleurs par rôle : bleu Majorelle = calcul/réseau, safran = stockage, vert = supervision, gris = configuration. */
+:root {
+  --bg: #f4f5fa;
+  --surface: #ffffff;
+  --surface-2: #eceef7;
+  --fg: #171a33;
+  --muted: #5d6385;
+  --line: #cfd3e6;
+  --accent: #2a43c4;
+  --accent-soft: #e4e8fb;
+  --azure: #eef3fd;
+  --azure-line: #8aa8e6;
+  --k8s: #f7f8fd;
+  --storage: #a86c00;
+  --storage-soft: #fff3d6;
+  --watch: #1d7f60;
+  --watch-soft: #dff3ea;
+  --config: #6b6f86;
+  --config-soft: #eeeff4;
+  --font-display: "Reem Kufi", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0f24; --surface: #151938; --surface-2: #1d2248; --fg: #e9ebf8; --muted: #a0a7ca; --line: #333a72;
+    --accent: #8b9cff; --accent-soft: #232a5c; --azure: #121a40; --azure-line: #4c63b8; --k8s: #111533;
+    --storage: #f2bd4f; --storage-soft: #3a2d10; --watch: #5fd1a8; --watch-soft: #123327; --config: #b2b6cf; --config-soft: #22264a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0f24; --surface: #151938; --surface-2: #1d2248; --fg: #e9ebf8; --muted: #a0a7ca; --line: #333a72;
+  --accent: #8b9cff; --accent-soft: #232a5c; --azure: #121a40; --azure-line: #4c63b8; --k8s: #111533;
+  --storage: #f2bd4f; --storage-soft: #3a2d10; --watch: #5fd1a8; --watch-soft: #123327; --config: #b2b6cf; --config-soft: #22264a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--font-body); }
+.wrap { max-width: 1280px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.wrap { padding-block: 32px 8px; display: grid; gap: 8px; }
+.eyebrow { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(26px, 4vw, 38px); }
+h2 { font-size: 22px; }
+.lead { margin: 0; color: var(--muted); max-width: 72ch; }
+code, .mono { font-family: var(--font-mono); font-size: .88em; }
+section.wrap { padding-block: 28px 0; display: grid; gap: 12px; }
+section > p { margin: 0; max-width: 72ch; }
+
+/* ---------- Schéma ---------- */
+.diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 1040px; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1.5px solid; }
+
+svg text { font-family: var(--font-body); fill: var(--fg); }
+svg .t { font-size: 13.5px; font-weight: 700; }
+svg .s { font-size: 11.5px; fill: var(--muted); }
+svg .m { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+svg .zone-title { font-size: 14px; font-weight: 700; }
+svg .zone-sub { font-size: 12px; fill: var(--muted); }
+svg .azure { fill: var(--azure); stroke: var(--azure-line); stroke-width: 1.5; }
+svg .vnet { fill: none; stroke: var(--azure-line); stroke-width: 1.2; stroke-dasharray: 6 4; }
+svg .k8s { fill: var(--k8s); stroke: var(--accent); stroke-width: 1.5; }
+svg .ns { fill: none; stroke: var(--accent); stroke-width: 1.2; stroke-dasharray: 5 4; }
+svg .ns-watch { fill: none; stroke: var(--watch); stroke-width: 1.2; stroke-dasharray: 5 4; }
+svg .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+svg .vm { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+svg .compute { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.2; }
+svg .pod { fill: var(--surface); stroke: var(--accent); stroke-width: 1.2; }
+svg .storage { fill: var(--storage-soft); stroke: var(--storage); stroke-width: 1.2; }
+svg .watch { fill: var(--watch-soft); stroke: var(--watch); stroke-width: 1.2; }
+svg .config { fill: var(--config-soft); stroke: var(--config); stroke-width: 1.2; }
+svg .ext { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.2; }
+svg .flow { fill: none; stroke: var(--accent); stroke-width: 1.8; }
+svg .flow-storage { fill: none; stroke: var(--storage); stroke-width: 1.8; }
+svg .flow-watch { fill: none; stroke: var(--watch); stroke-width: 1.6; stroke-dasharray: 5 4; }
+svg .flow-config { fill: none; stroke: var(--config); stroke-width: 1.4; stroke-dasharray: 4 3; }
+svg .badge circle { fill: var(--fg); }
+svg .badge text { fill: var(--bg); font-size: 11px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+svg .hl { fill: var(--storage); font-weight: 700; }
+svg #arrow path { fill: var(--accent); }
+svg #arrow-s path { fill: var(--storage); }
+svg #arrow-w path { fill: var(--watch); }
+svg #arrow-c path { fill: var(--config); }
+
+/* ---------- Tableaux ---------- */
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-weight: 700; font-variant-numeric: tabular-nums; width: 44px; }
+.n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--fg); color: var(--bg); font-size: 12px; font-weight: 700; }
+
+.phases { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: ph; }
+.phases li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0; }
+.phases b { font-size: 14px; }
+.phases .k { font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+.phases span:last-child { color: var(--muted); font-size: 13.5px; }
+.phases li.new { border-color: var(--storage); }
+.phases li.new .k { color: var(--storage); }
+
+.notes { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.notes li { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--storage); border-radius: 10px; padding: 12px 14px; max-width: 90ch; }
+.notes b { display: block; margin-bottom: 2px; }
+footer.wrap { padding-block: 32px 40px; color: var(--muted); font-size: 13px; }
+</style>
+
+<header class="wrap">
+  <p class="eyebrow">Projet fil rouge · Azure · Kubernetes 3 nœuds</p>
+  <h1>Maghreb Platform sur Kubernetes</h1>
+  <p class="lead">L'architecture du sujet « mise en production d'une application e-commerce sur Kubernetes », avec ton site à la place de WordPress. En haut, ce qui existe physiquement (les machines Azure). En bas, ce que Kubernetes fait tourner dessus.</p>
+</header>
+
+<section class="wrap" aria-label="Schéma d'architecture">
+  <div class="diagram">
+    <svg viewBox="0 0 1240 1150" role="img" aria-labelledby="svg-title svg-desc">
+      <title id="svg-title">Schéma d'architecture</title>
+      <desc id="svg-desc">Un poste de contrôle pilote Azure avec Terraform et Ansible. Azure héberge trois VM (master, worker1, worker2) formant un cluster kubeadm. Le namespace asma-project1 contient le site (3 réplicas), MySQL, leurs Services, ConfigMap, Secret, HPA, une sauvegarde et des volumes NFS servis par worker2. Le namespace monitoring contient Prometheus, Alertmanager, Grafana et Loki. Le namespace gitlab-runner contient le runner GitLab : il récupère les jobs sur gitlab.com, construit l'image, la publie sur Docker Hub et déploie la nouvelle version.</desc>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" /></marker>
+        <marker id="arrow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" /></marker>
+        <marker id="arrow-w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" /></marker>
+        <marker id="arrow-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" /></marker>
+      </defs>
+
+      <!-- ===================== Colonne gauche : hors Azure ===================== -->
+      <rect class="ext" x="20" y="30" width="220" height="74" rx="10" />
+      <text class="t" x="34" y="56">Visiteur</text>
+      <text class="s" x="34" y="76">navigateur web</text>
+      <text class="m" x="34" y="94">http://IP-publique:30080</text>
+
+      <rect class="box" x="20" y="150" width="220" height="250" rx="10" />
+      <text class="t" x="34" y="176">Poste de contrôle</text>
+      <text class="s" x="34" y="194">ton PC (WSL) ou VM control_node</text>
+      <rect class="compute" x="34" y="208" width="192" height="30" rx="6" /><text class="t" x="46" y="228" style="font-size:12.5px">Terraform</text>
+      <rect class="compute" x="34" y="244" width="192" height="30" rx="6" /><text class="t" x="46" y="264" style="font-size:12.5px">Ansible</text>
+      <rect class="compute" x="34" y="280" width="192" height="30" rx="6" /><text class="t" x="46" y="300" style="font-size:12.5px">kubectl · Helm</text>
+      <rect class="compute" x="34" y="316" width="192" height="30" rx="6" /><text class="t" x="46" y="336" style="font-size:12.5px">Docker (build de l'image)</text>
+      <text class="s" x="34" y="372">Tout est piloté d'ici :</text>
+      <text class="s" x="34" y="388">aucune action à la main sur les VM.</text>
+
+      <rect class="ext" x="20" y="450" width="220" height="80" rx="10" />
+      <text class="t" x="34" y="476">Docker Hub</text>
+      <text class="s" x="34" y="494">registre d'images</text>
+      <text class="m" x="34" y="514">asma/maghreb-platform:1.0</text>
+
+      <rect class="compute" x="20" y="580" width="220" height="112" rx="10" />
+      <text class="t" x="34" y="606">gitlab.com</text>
+      <text class="s" x="34" y="624">compte personnel : code du site,</text>
+      <text class="s" x="34" y="640">Terraform, playbooks, manifests</text>
+      <text class="s" x="34" y="656">+ .gitlab-ci.yml (pipeline)</text>
+      <text class="s" x="34" y="676">survit à la fin du compte Azure</text>
+
+      <!-- ===================== Azure ===================== -->
+      <rect class="azure" x="280" y="20" width="940" height="1115" rx="14" />
+      <text class="zone-title" x="300" y="46">Microsoft Azure · Resource Group rg-formation-asma</text>
+
+      <rect class="vnet" x="300" y="60" width="900" height="214" rx="10" />
+      <text class="zone-sub" x="316" y="82">VNet 10.0.0.0/16 · subnet 10.0.1.0/24 · NSG : SSH 22 (ton IP seulement) · 30080 site · 30300 Grafana · trafic interne autorisé</text>
+
+      <!-- master -->
+      <rect class="vm" x="315" y="96" width="280" height="166" rx="10" />
+      <text class="t" x="329" y="120">master</text><text class="m" x="390" y="120">10.0.1.4 · IP publique</text>
+      <text class="s" x="329" y="138">Standard_B2s · Ubuntu 22.04</text>
+      <text class="s" x="329" y="164">• kube-apiserver :6443</text>
+      <text class="s" x="329" y="182">• etcd + snapshot de sauvegarde (cron)</text>
+      <text class="s" x="329" y="200">• scheduler · controller-manager</text>
+      <text class="s" x="329" y="218">• containerd · kubelet · CNI Calico</text>
+      <text class="s" x="329" y="236">• control plane : pas de pods applicatifs</text>
+
+      <!-- worker1 -->
+      <rect class="vm" x="605" y="96" width="280" height="166" rx="10" />
+      <text class="t" x="619" y="120">worker1</text><text class="m" x="685" y="120">10.0.1.5 · IP publique</text>
+      <text class="s" x="619" y="138">Standard_B2s · Ubuntu 22.04</text>
+      <text class="s" x="619" y="164">• containerd · kubelet</text>
+      <text class="s" x="619" y="182">• pods du site, pod MySQL</text>
+      <text class="s" x="619" y="200">• supervision · runner CI</text>
+      <text class="s" x="619" y="218">• client NFS (nfs-common)</text>
+
+      <!-- worker2 = Node3 -->
+      <rect class="vm" x="895" y="96" width="290" height="166" rx="10" />
+      <text class="t" x="909" y="120">worker2</text><text class="m" x="975" y="120">10.0.1.6 · « Node3 »</text>
+      <text class="s" x="909" y="138">Standard_B2s · Ubuntu 22.04</text>
+      <text class="s" x="909" y="164">• containerd · kubelet · pods du site</text>
+      <rect class="storage" x="909" y="176" width="262" height="74" rx="6" />
+      <text class="t" x="921" y="196" style="font-size:12.5px">Serveur NFS (nfs-kernel-server)</text>
+      <text class="m" x="921" y="214">/srv/nfs/mysql   (base)</text>
+      <text class="m" x="921" y="230">/srv/nfs/media   (photos)</text>
+      <text class="m" x="921" y="246">/srv/nfs/backups (sauvegardes)</text>
+
+      <!-- ===================== Cluster ===================== -->
+      <rect class="k8s" x="300" y="300" width="900" height="820" rx="12" />
+      <text class="zone-title" x="316" y="326">Cluster Kubernetes · kubeadm · 3 nœuds</text>
+
+      <!-- Namespace projet -->
+      <rect class="ns" x="315" y="340" width="600" height="605" rx="10" />
+      <text class="zone-title" x="331" y="364" style="font-size:13px">Namespace asma-project1</text>
+
+      <rect class="compute" x="335" y="380" width="240" height="60" rx="8" />
+      <text class="t" x="349" y="404">Service maghreb-site</text>
+      <text class="m" x="349" y="424">NodePort 30080 → 8080</text>
+
+      <rect class="compute" x="600" y="380" width="295" height="60" rx="8" />
+      <text class="t" x="614" y="404">HPA maghreb-site</text>
+      <text class="s" x="614" y="424">2 à 5 réplicas selon le CPU (> 70 %)</text>
+
+      <rect class="compute" x="335" y="470" width="560" height="118" rx="8" />
+      <text class="t" x="349" y="494">Deployment maghreb-site · 3 réplicas</text>
+      <text class="s" x="349" y="512">image asma/maghreb-platform · initContainer : attend mysql:3306 · sondes readiness / liveness</text>
+      <rect class="pod" x="350" y="524" width="165" height="50" rx="6" /><text class="t" x="362" y="546" style="font-size:12.5px">pod site</text><text class="m" x="362" y="564">:8080 · /actuator</text>
+      <rect class="pod" x="530" y="524" width="165" height="50" rx="6" /><text class="t" x="542" y="546" style="font-size:12.5px">pod site</text><text class="m" x="542" y="564">:8080 · /actuator</text>
+      <rect class="pod" x="710" y="524" width="165" height="50" rx="6" /><text class="t" x="722" y="546" style="font-size:12.5px">pod site</text><text class="m" x="722" y="564">:8080 · /actuator</text>
+
+      <rect class="config" x="335" y="620" width="170" height="70" rx="8" />
+      <text class="t" x="349" y="644">ConfigMap</text>
+      <text class="m" x="349" y="662">DB_URL · DB_USER</text>
+      <text class="m" x="349" y="678">STORAGE_*</text>
+
+      <rect class="config" x="520" y="620" width="170" height="70" rx="8" />
+      <text class="t" x="534" y="644">Secret</text>
+      <text class="m" x="534" y="662">MYSQL_*PASSWORD</text>
+      <text class="m" x="534" y="678">JWT_SECRET</text>
+
+      <rect class="compute" x="705" y="620" width="190" height="70" rx="8" />
+      <text class="t" x="719" y="644">Service mysql</text>
+      <text class="m" x="719" y="664">ClusterIP · 3306</text>
+      <text class="s" x="719" y="680">interne au cluster</text>
+
+      <rect class="compute" x="520" y="720" width="375" height="70" rx="8" />
+      <text class="t" x="534" y="744">Deployment mysql · 1 réplica</text>
+      <text class="m" x="534" y="764">mysql:8.4 · /var/lib/mysql</text>
+      <text class="s" x="534" y="780">base de données : un seul pod (pas de réplication)</text>
+
+      <rect class="storage" x="335" y="720" width="170" height="70" rx="8" />
+      <text class="t" x="349" y="744">CronJob backup</text>
+      <text class="s" x="349" y="762">mysqldump chaque nuit</text>
+      <text class="m" x="349" y="778">→ /srv/nfs/backups</text>
+
+      <rect class="storage" x="335" y="820" width="270" height="70" rx="8" />
+      <text class="t" x="349" y="844">PVC media-pvc → PV media-pv</text>
+      <text class="m" x="349" y="862">NFS worker2:/srv/nfs/media</text>
+      <text class="s" x="349" y="878">ReadWriteMany · monté sur /data/media</text>
+
+      <rect class="storage" x="625" y="820" width="270" height="70" rx="8" />
+      <text class="t" x="639" y="844">PVC mysql-pvc → PV mysql-pv</text>
+      <text class="m" x="639" y="862">NFS worker2:/srv/nfs/mysql</text>
+      <text class="s" x="639" y="878">volume statique · ReadWriteOnce</text>
+
+      <text class="s" x="335" y="925">Tous les objets de l'application sont dans ce namespace, comme l'exige le sujet.</text>
+
+      <!-- Namespace monitoring -->
+      <rect class="ns-watch" x="930" y="340" width="255" height="605" rx="10" />
+      <text class="zone-title" x="946" y="364" style="font-size:13px">Namespace monitoring</text>
+      <rect class="watch" x="945" y="380" width="225" height="60" rx="8" /><text class="t" x="959" y="404">Prometheus</text><text class="s" x="959" y="424">collecte des métriques, règles</text>
+      <rect class="watch" x="945" y="452" width="225" height="56" rx="8" /><text class="t" x="959" y="476">Alertmanager</text><text class="s" x="959" y="494">pod arrêté, CPU > 80 %, BDD…</text>
+      <rect class="watch" x="945" y="520" width="225" height="60" rx="8" /><text class="t" x="959" y="544">Grafana</text><text class="m" x="959" y="564">NodePort 30300</text>
+      <rect class="watch" x="945" y="592" width="225" height="56" rx="8" /><text class="t" x="959" y="616">Loki</text><text class="s" x="959" y="634">logs centralisés</text>
+      <rect class="watch" x="945" y="660" width="225" height="70" rx="8" /><text class="t" x="959" y="684">Sur chaque nœud</text><text class="s" x="959" y="702">DaemonSets : node-exporter</text><text class="s" x="959" y="718">(métriques) · promtail (logs)</text>
+      <rect class="watch" x="945" y="742" width="225" height="56" rx="8" /><text class="t" x="959" y="766">kube-state-metrics</text><text class="s" x="959" y="784">état des pods, déploiements</text>
+      <rect class="box" x="945" y="820" width="225" height="70" rx="8" /><text class="t" x="959" y="844">Kubernetes Dashboard</text><text class="s" x="959" y="862">tableau de bord du cluster</text><text class="s" x="959" y="878">(namespace à part)</text>
+
+
+      <!-- Namespace gitlab-runner (CI/CD) -->
+      <rect class="ns" x="315" y="960" width="870" height="145" rx="10" />
+      <text class="zone-title" x="331" y="984" style="font-size:13px">Namespace gitlab-runner · CI/CD</text>
+      <rect class="compute" x="335" y="998" width="520" height="92" rx="8" />
+      <text class="t" x="349" y="1020">GitLab Runner · 1 pod (installé avec Helm)</text>
+      <text class="s" x="349" y="1040">executor Kubernetes : récupère les jobs sur gitlab.com</text>
+      <text class="s" x="349" y="1058">(connexion sortante HTTPS) et lance un pod par job</text>
+      <text class="m" x="349" y="1076">ServiceAccount ci-deployer · droits limités à asma-project1</text>
+      <rect class="pod" x="875" y="998" width="295" height="92" rx="8" />
+      <text class="t" x="889" y="1020">Pods de job (pipeline)</text>
+      <text class="s" x="889" y="1040">test : maven · build : Kaniko</text>
+      <text class="s" x="889" y="1058">scan : Trivy · deploy : kubectl</text>
+      <text class="s" x="889" y="1076">détruits à la fin du job</text>
+
+      <!-- ===================== Flux ===================== -->
+      <!-- 1 Terraform → Azure -->
+      <path class="flow" d="M226,223 H315" marker-end="url(#arrow)" />
+      <!-- 2 Ansible → VMs (SSH) -->
+      <path class="flow" d="M226,255 H315" marker-end="url(#arrow)" />
+      <!-- 3 kubectl / helm → API -->
+      <path class="flow" d="M226,295 H266 V320 H300" marker-end="url(#arrow)" />
+      <!-- 4 docker push -->
+      <path class="flow" d="M130,400 V450" marker-end="url(#arrow)" />
+      <!-- 5 pull de l'image -->
+      <path class="flow" d="M240,490 H335" marker-end="url(#arrow)" />
+      <!-- 6 visiteur → NodePort -->
+      <path class="flow" d="M240,67 H250 V410 H335" marker-end="url(#arrow)" />
+      <!-- Service → pods -->
+      <path class="flow" d="M455,440 V470" marker-end="url(#arrow)" />
+      <!-- HPA → Deployment -->
+      <path class="flow-config" d="M747,440 V470" marker-end="url(#arrow-c)" />
+      <!-- ConfigMap, Secret → pods -->
+      <path class="flow-config" d="M420,620 V588" marker-end="url(#arrow-c)" />
+      <path class="flow-config" d="M605,620 V588" marker-end="url(#arrow-c)" />
+      <!-- pods → Service mysql → mysql -->
+      <path class="flow" d="M800,588 V620" marker-end="url(#arrow)" />
+      <path class="flow" d="M800,690 V720" marker-end="url(#arrow)" />
+      <!-- Secret → mysql -->
+      <path class="flow-config" d="M605,690 V720" marker-end="url(#arrow-c)" />
+      <!-- backup → mysql -->
+      <path class="flow-storage" d="M505,755 H520" marker-end="url(#arrow-s)" />
+      <!-- mysql → PVC -->
+      <path class="flow-storage" d="M760,790 V820" marker-end="url(#arrow-s)" />
+      <!-- pods → PVC media -->
+      <path class="flow-storage" d="M335,560 H325 V855 H335" marker-end="url(#arrow-s)" />
+      <!-- 7 PV → serveur NFS sur worker2 -->
+      <path class="flow-storage" d="M470,890 V905 H922 V286 H1040 V250" marker-end="url(#arrow-s)" />
+      <path class="flow-storage" d="M895,855 H922" />
+      <!-- 8 Prometheus scrape -->
+      <path class="flow-watch" d="M945,410 H905 V520 H895" marker-end="url(#arrow-w)" />
+      <!-- promtail → Loki -->
+      <path class="flow-watch" d="M1057,660 V648" marker-end="url(#arrow-w)" />
+
+      <!-- 9 git push → gitlab.com -->
+      <path class="flow" d="M20,380 H10 V636 H20" marker-end="url(#arrow)" />
+      <!-- runner → gitlab.com (sortant) -->
+      <path class="flow" d="M335,1030 H250 V692" marker-end="url(#arrow)" />
+      <!-- runner → jobs -->
+      <path class="flow" d="M855,1044 H875" marker-end="url(#arrow)" />
+      <!-- 10 Kaniko → Docker Hub -->
+      <path class="flow" d="M1022,1090 V1112 H262 V530 H240" marker-end="url(#arrow)" />
+      <!-- 11 job deploy → namespace de l'appli -->
+      <path class="flow" d="M895,998 V948" marker-end="url(#arrow)" />
+      <!-- Badges numérotés (voir le tableau des flux) -->
+      <g class="badge"><circle cx="290" cy="223" r="10" /><text x="290" y="223">1</text></g>
+      <g class="badge"><circle cx="296" cy="255" r="10" /><text x="296" y="255">2</text></g>
+      <g class="badge"><circle cx="266" cy="308" r="10" /><text x="266" y="308">3</text></g>
+      <g class="badge"><circle cx="146" cy="425" r="10" /><text x="146" y="425">4</text></g>
+      <g class="badge"><circle cx="285" cy="490" r="10" /><text x="285" y="490">5</text></g>
+      <g class="badge"><circle cx="250" cy="130" r="10" /><text x="250" y="130">6</text></g>
+      <g class="badge"><circle cx="922" cy="600" r="10" /><text x="922" y="600">7</text></g>
+      <g class="badge"><circle cx="905" cy="460" r="10" /><text x="905" y="460">8</text></g>
+      <g class="badge"><circle cx="10" cy="510" r="10" /><text x="10" y="510">9</text></g>
+      <g class="badge"><circle cx="250" cy="900" r="11" /><text x="250" y="900">12</text></g>
+      <g class="badge"><circle cx="262" cy="820" r="11" /><text x="262" y="820">10</text></g>
+      <g class="badge"><circle cx="895" cy="975" r="11" /><text x="895" y="975">11</text></g>
+    </svg>
+  </div>
+  <div class="legend" aria-label="Légende">
+    <span><i style="background:var(--accent-soft);border-color:var(--accent)"></i>Calcul et réseau</span>
+    <span><i style="background:var(--storage-soft);border-color:var(--storage)"></i>Stockage et sauvegarde</span>
+    <span><i style="background:var(--config-soft);border-color:var(--config)"></i>Configuration (pointillés : injecté en variables d'environnement)</span>
+    <span><i style="background:var(--watch-soft);border-color:var(--watch)"></i>Supervision et logs</span>
+  </div>
+</section>
+
+<section class="wrap" aria-labelledby="flux">
+  <h2 id="flux">Les flux numérotés</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>N°</th><th>De → vers</th><th>Protocole / port</th><th>À quoi ça sert</th></tr></thead>
+      <tbody>
+        <tr><td class="num"><span class="n">1</span></td><td>Terraform → Azure</td><td class="mono">HTTPS (API Azure)</td><td>Crée le Resource Group, le VNet, le subnet, le NSG, les IP publiques, les cartes réseau et les 3 VM.</td></tr>
+        <tr><td class="num"><span class="n">2</span></td><td>Ansible → les 3 VM</td><td class="mono">SSH 22</td><td>Installe containerd, kubeadm, kubelet, kubectl ; crée le cluster (<code>kubeadm init</code> puis <code>join</code>) ; installe le serveur NFS sur worker2 et le client NFS partout ; programme le snapshot etcd.</td></tr>
+        <tr><td class="num"><span class="n">3</span></td><td>kubectl / Helm → master</td><td class="mono">HTTPS 6443</td><td>Applique les manifests de l'application et installe la supervision (kube-prometheus-stack, Loki).</td></tr>
+        <tr><td class="num"><span class="n">4</span></td><td>Poste de contrôle → Docker Hub</td><td class="mono">HTTPS</td><td>Construit l'image du site (<code>docker build</code>) et la publie (<code>docker push</code>). C'est l'étape qui remplace l'image officielle de WordPress.</td></tr>
+        <tr><td class="num"><span class="n">5</span></td><td>Nœuds → Docker Hub</td><td class="mono">HTTPS</td><td>containerd télécharge l'image au démarrage des pods. Les images <code>mysql</code> et de supervision viennent aussi de là.</td></tr>
+        <tr><td class="num"><span class="n">6</span></td><td>Visiteur → un nœud</td><td class="mono">HTTP 30080</td><td>Le Service NodePort ouvre le port 30080 sur chaque nœud et répartit les requêtes entre les pods du site.</td></tr>
+        <tr><td class="num"><span class="n">7</span></td><td>Nœuds → serveur NFS (worker2)</td><td class="mono">NFS 2049</td><td>Montage des volumes persistants : données MySQL, photos des produits, sauvegardes.</td></tr>
+        <tr><td class="num"><span class="n">8</span></td><td>Prometheus → pods du site</td><td class="mono">HTTP 8080</td><td>Lit <code>/actuator/prometheus</code> : requêtes, latence, JVM et métriques métier (inscriptions, commandes…).</td></tr>
+        <tr><td class="num"><span class="n">9</span></td><td>Toi → gitlab.com</td><td class="mono">SSH 22 / HTTPS</td><td><code>git push</code> du code. Chaque push déclenche le pipeline défini dans <code>.gitlab-ci.yml</code>.</td></tr>
+        <tr><td class="num"><span class="n">10</span></td><td>Job Kaniko → Docker Hub</td><td class="mono">HTTPS</td><td>Construit l'image dans un pod (sans démon Docker, le cluster utilisant containerd) et la publie avec le numéro du commit comme tag.</td></tr>
+        <tr><td class="num"><span class="n">12</span></td><td>Runner → gitlab.com</td><td class="mono">HTTPS sortant</td><td>Le runner demande en permanence « y a-t-il un job pour moi ? ». La connexion part du cluster : aucun port entrant à ouvrir.</td></tr>
+        <tr><td class="num"><span class="n">11</span></td><td>Job deploy → namespace de l'appli</td><td class="mono">API interne du cluster</td><td>Met à jour le Deployment avec la nouvelle image (rolling update). Le runner est dans le cluster : l'API n'a pas à être ouverte sur Internet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>À l'intérieur du namespace, le site joint la base par le nom <code>mysql:3306</code> : c'est le Service ClusterIP qui donne ce nom stable, même si le pod MySQL redémarre et change d'adresse.</p>
+</section>
+
+<section class="wrap" aria-labelledby="objets">
+  <h2 id="objets">Objets Kubernetes du namespace</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Objet</th><th>Rôle</th><th>Exigence du sujet couverte</th></tr></thead>
+      <tbody>
+        <tr><td><b>Deployment</b> maghreb-site</td><td>3 pods identiques du site (pages + API), avec un initContainer qui attend que <code>mysql:3306</code> réponde avant de démarrer le site.</td><td>« WordPress doit vérifier le service MySQL avant de se déployer » · haute disponibilité</td></tr>
+        <tr><td><b>Service</b> maghreb-site (NodePort)</td><td>Point d'entrée depuis l'extérieur, répartition de charge entre les 3 pods.</td><td>« Service network adéquat pour rendre l'application accessible »</td></tr>
+        <tr><td><b>HPA</b></td><td>Ajoute ou retire des pods selon le CPU (nécessite metrics-server).</td><td>Mécanisme de montée en charge</td></tr>
+        <tr><td><b>Deployment</b> mysql + <b>Service</b> mysql</td><td>La base, joignable uniquement à l'intérieur du cluster.</td><td>Application multi-tiers</td></tr>
+        <tr><td><b>Secret</b></td><td>Mots de passe MySQL et clé <code>JWT_SECRET</code>, jamais écrits dans Git.</td><td>« Données sensibles protégées par des secrets »</td></tr>
+        <tr><td><b>ConfigMap</b></td><td>URL de la base, utilisateur, type et dossier de stockage des photos.</td><td>« Données non sensibles dans des configmaps »</td></tr>
+        <tr><td><b>PV / PVC</b> mysql et media</td><td>Volumes NFS statiques sur worker2 : les données survivent à la suppression des pods.</td><td>« Utiliser Node3 comme serveur NFS avec des volumes statiques »</td></tr>
+        <tr><td><b>ServiceAccount</b> ci-deployer + <b>Role</b></td><td>Identité du job de déploiement, limitée au namespace de l'appli (principe du moindre privilège).</td><td>Sécurité du CI/CD (extension)</td></tr>
+        <tr><td><b>CronJob</b> backup</td><td>Exporte la base chaque nuit avec <code>mysqldump</code> vers le NFS.</td><td>Sauvegarde (en plus du snapshot etcd)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="wrap" aria-labelledby="phases">
+  <h2 id="phases">Les phases du sujet, avec ce site</h2>
+  <ol class="phases">
+    <li><span class="k">Phase 0</span><b>Analyse du besoin</b><span>Ce schéma : application, architecture, contraintes.</span></li>
+    <li><span class="k">Phase 1</span><b>Poste de contrôle</b><span>Terraform, Ansible, kubectl, Helm, Docker.</span></li>
+    <li><span class="k">Phase 2</span><b>Terraform</b><span>RG, VNet, subnet, NSG, IP publiques, 3 VM.</span></li>
+    <li><span class="k">Phase 3</span><b>Ansible</b><span>containerd, kubeadm, kubelet, kubectl sur les 3 VM.</span></li>
+    <li><span class="k">Phase 4</span><b>Cluster kubeadm</b><span>init du master, CNI, join des 2 workers, 3 nœuds Ready.</span></li>
+    <li class="new"><span class="k">Nouvelle étape</span><b>Image du site</b><span>Dockerfile, build, push sur Docker Hub. Remplace l'image WordPress toute faite.</span></li>
+    <li><span class="k">Phase 5</span><b>Déploiement</b><span>Namespace, MySQL, puis le site avec son initContainer.</span></li>
+    <li><span class="k">Phases 6 et 7</span><b>NFS, PV, PVC</b><span>Serveur sur worker2, client sur les nœuds, volumes statiques.</span></li>
+    <li><span class="k">Phase 8</span><b>Secret et ConfigMap</b><span>Mots de passe, JWT_SECRET, URL de la base.</span></li>
+    <li><span class="k">Phase 9</span><b>Haute disponibilité</b><span>3 réplicas, puis HPA.</span></li>
+    <li class="new"><span class="k">Extension</span><b>CI/CD GitLab</b><span>Dépôt sur gitlab.com, runner dans le cluster, pipeline test → build (Kaniko) → scan → deploy.</span></li>
+    <li><span class="k">Phase 10</span><b>Supervision</b><span>kube-prometheus-stack, Grafana, alertes, métriques du site.</span></li>
+    <li><span class="k">Phase 11</span><b>Logs</b><span>Loki et promtail.</span></li>
+    <li><span class="k">Phase 12</span><b>Backup etcd</b><span>etcdctl snapshot sur le master, plus mysqldump.</span></li>
+    <li><span class="k">Phases 13 et 14</span><b>Tests et résultat</b><span>Accès, persistance, redémarrage de pods, scaling, monitoring, logs.</span></li>
+  </ol>
+</section>
+
+<section class="wrap" aria-labelledby="attention">
+  <h2 id="attention">Points d'attention</h2>
+  <ul class="notes">
+    <li><b>Le nom du namespace</b>Kubernetes refuse le tiret bas : <code>mon_nom-project1</code> tel quel ne passe pas. Utilise des minuscules, chiffres et tirets, par exemple <code>asma-project1</code>.</li>
+    <li><b>Docker et kubeadm</b>Depuis Kubernetes 1.24, kubelet ne parle plus directement à Docker. On installe Docker (ou seulement containerd) et kubelet utilise containerd. Docker reste utile sur le poste de contrôle pour construire l'image.</li>
+    <li><b>Taille des VM</b>kubeadm exige au moins 2 vCPU et 2 Go de RAM sur le master : Standard_B2s (4 Go) convient. Prometheus, Grafana et Loki consomment beaucoup de mémoire : si les workers saturent, passe-les en Standard_B2ms (8 Go). Vérifie ton quota de vCPU avant.</li>
+    <li><b>Pourquoi gitlab.com et pas GitLab dans le cluster</b>Le runner ne prend qu'environ 100 Mo, le dépôt survit à la fin du compte Azure et le pipeline reste disponible même si le cluster est en panne. Les jobs s'exécutent quand même dans tes pods : la démo montre le CI/CD tourner dans ton cluster.</li>
+    <li><b>Le jeton du runner</b>Le jeton d'enregistrement du runner (créé dans gitlab.com, menu CI/CD &gt; Runners) est un secret : il va dans Ansible Vault ou un Secret Kubernetes, jamais en clair dans le dépôt.</li>
+    <li><b>Le NFS est un point unique</b>Si worker2 tombe, les volumes ne sont plus accessibles. C'est ce que demande le sujet ; mentionne-le dans le rapport avec l'amélioration possible (stockage managé Azure Files).</li>
+    <li><b>MySQL reste à 1 réplica</b>Seul le site se met à l'échelle. Une base ne se duplique pas avec <code>kubectl scale</code> : il faudrait une réplication MySQL, hors du périmètre du sujet.</li>
+    <li><b>Les photos et les réplicas</b>Les 3 pods du site doivent voir les mêmes photos : d'où le volume NFS en ReadWriteMany monté sur <code>/data/media</code>, avec <code>STORAGE_LOCAL_DIR=/data/media</code>.</li>
+    <li><b>Ouvertures réseau</b>Le NSG n'ouvre SSH qu'à ton IP. Le port 6443 aussi, si tu pilotes kubectl depuis ton PC. Les ports 30080 (site) et 30300 (Grafana) sont ouverts au public. Extension possible : Ingress + HTTPS au lieu des NodePorts.</li>
+  </ul>
+</section>
+
+<footer class="wrap">Maghreb Platform · projet fil rouge DevOps · architecture cible</footer>
