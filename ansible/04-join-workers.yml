@@ -1,0 +1,20 @@
+---
+- name: Récupérer la commande de jonction sur le master
+  hosts: master
+  become: true
+
+  tasks:
+    - name: Générer la commande kubeadm join
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: join_cmd
+      changed_when: false
+
+- name: Joindre les workers au cluster
+  hosts: workers
+  become: true
+
+  tasks:
+    - name: Rejoindre le cluster
+      ansible.builtin.command: "{{ hostvars['asma-master'].join_cmd.stdout }} --node-name={{ inventory_hostname }}"
+      args:
+        creates: /etc/kubernetes/kubelet.conf

@@ -1,0 +1,42 @@
+---
+- name: Initialiser le control plane
+  hosts: master
+  become: true
+
+  vars:
+    apiserver_ip: "10.1.1.4"
+    pod_cidr: "10.244.0.0/16"
+
+  tasks:
+    - name: Initialiser le cluster avec kubeadm
+      ansible.builtin.command: >
+        kubeadm init
+        --apiserver-advertise-address={{ apiserver_ip }}
+        --pod-network-cidr={{ pod_cidr }}
+        --node-name={{ inventory_hostname }}
+      args:
+        creates: /etc/kubernetes/admin.conf
+
+    - name: Créer le dossier .kube de azureuser
+      ansible.builtin.file:
+        path: /home/azureuser/.kube
+        state: directory
+        owner: azureuser
+        group: azureuser
+        mode: "0755"
+
+    - name: Copier le kubeconfig pour azureuser
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/azureuser/.kube/config
+        remote_src: true
+        owner: azureuser
+        group: azureuser
+        mode: "0600"
+
+    - name: Installer le réseau des pods (Flannel)
+      ansible.builtin.command: kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: flannel
+      changed_when: "'created' in flannel.stdout"
